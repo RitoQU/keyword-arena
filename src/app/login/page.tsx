@@ -122,7 +122,7 @@ export default function LoginPage() {
 
         {/* 说明文字 */}
         <p className="font-pixel-zh text-gray-600 text-xs text-center mt-6">
-          首次输入的名字+识别码会自动创建账号
+          新玩家？直接输入名字和识别码即可注册
         </p>
 
         {/* 返回 */}

@@ -66,6 +66,8 @@ export default function BattlePage() {
   const [visibleActions, setVisibleActions] = useState(0);
   const [battlePhase, setBattlePhase] = useState<"loading" | "fighting" | "result">("loading");
   const [error, setError] = useState("");
+  const [opponentCreator, setOpponentCreator] = useState<{ name: string; code: string } | null>(null);
+  const [remainingBattles, setRemainingBattles] = useState<number | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,6 +97,8 @@ export default function BattlePage() {
         return;
       }
       setBattleResult(data.result);
+      setOpponentCreator(data.opponentCreator || null);
+      setRemainingBattles(data.remainingBattles ?? null);
       setBattlePhase("fighting");
     } catch {
       setError("网络错误，请重试");
@@ -123,7 +127,8 @@ export default function BattlePage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="font-pixel text-pixel-green text-xl pixel-blink">MATCHING...</p>
+          <p className="font-pixel text-pixel-green text-xl">MATCHING</p>
+          <p className="font-pixel text-pixel-green text-xl mt-2 pixel-blink">. . .</p>
           <p className="font-pixel-zh text-gray-400 mt-4">正在匹配对手</p>
         </div>
       </div>
@@ -160,7 +165,7 @@ export default function BattlePage() {
         {/* 玩家侧 */}
         <div className="pixel-card">
           <p className="font-pixel text-pixel-green text-xs mb-1 truncate">{player.name}</p>
-          <p className="font-pixel-zh text-gray-500 text-xs mb-2">{player.keywords}</p>
+          <p className="font-pixel-zh text-gray-500 text-xs mb-2 tracking-widest">{player.keywords?.replace(/、/g, '  ·  ')}</p>
           <HpBar current={playerHp} max={player.max_hp} side="left" />
           <div className="grid grid-cols-3 gap-1 mt-2 text-xs text-gray-400">
             <span>STR {player.str}</span>
@@ -172,7 +177,15 @@ export default function BattlePage() {
         {/* 对手侧 */}
         <div className="pixel-card">
           <p className="font-pixel text-red-400 text-xs mb-1 truncate">{opponent.name}</p>
-          <p className="font-pixel-zh text-gray-500 text-xs mb-2">{opponent.keywords}</p>
+          <p className="font-pixel-zh text-gray-500 text-xs mb-2 tracking-widest">{opponent.keywords?.replace(/、/g, '  ·  ')}</p>
+          {opponentCreator && (
+            <p className="font-pixel-zh text-gray-600 text-xs mb-1">
+              🎮 {opponentCreator.name} #{opponentCreator.code} 创建
+            </p>
+          )}
+          {!opponentCreator && opponent.is_system && (
+            <p className="font-pixel-zh text-gray-600 text-xs mb-1">🤖 系统角色</p>
+          )}
           <HpBar current={opponentHp} max={opponent.max_hp} side="right" />
           <div className="grid grid-cols-3 gap-1 mt-2 text-xs text-gray-400">
             <span>STR {opponent.str}</span>
@@ -226,6 +239,22 @@ export default function BattlePage() {
             </p>
             <p className="font-pixel-zh text-gray-300 text-sm">{summary}</p>
           </div>
+
+          {/* 剩余对战提示 (OPT-10) */}
+          {remainingBattles !== null && remainingBattles <= 5 && remainingBattles > 0 && (
+            <div className="pixel-card text-center" style={{ borderColor: "#ffd700" }}>
+              <p className="font-pixel-zh text-pixel-yellow text-sm">
+                ⚠️ 今日剩余 {remainingBattles} 场对战
+              </p>
+            </div>
+          )}
+          {remainingBattles !== null && remainingBattles <= 0 && (
+            <div className="pixel-card text-center" style={{ borderColor: "#ff4444" }}>
+              <p className="font-pixel-zh text-pixel-red text-sm">
+                今日对战次数已用完，明天再来吧！
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-4">
             <button onClick={() => router.push("/game")} className="pixel-btn-secondary flex-1">

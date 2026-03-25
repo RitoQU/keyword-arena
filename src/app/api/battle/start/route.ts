@@ -66,6 +66,19 @@ export async function POST(request: NextRequest) {
     // 随机选一个对手
     const opponentChar = allOpponents[Math.floor(Math.random() * allOpponents.length)] as Character;
 
+    // 获取对手的创建者信息（如果是玩家角色）
+    let opponentCreator: { name: string; code: string } | null = null;
+    if (opponentChar.user_id) {
+      const { data: creatorUser } = await supabaseAdmin
+        .from("users")
+        .select("name, code")
+        .eq("id", opponentChar.user_id)
+        .single();
+      if (creatorUser) {
+        opponentCreator = creatorUser;
+      }
+    }
+
     // 执行战斗
     const battleResult = runBattle(playerChar as Character, opponentChar);
 
@@ -111,6 +124,8 @@ export async function POST(request: NextRequest) {
         id: battle.id,
         created_at: battle.created_at,
       },
+      opponentCreator,
+      remainingBattles: 20 - ((limit?.battles || 0) + 1),
     });
   } catch (err) {
     console.error("Battle API error:", err);
