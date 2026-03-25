@@ -184,9 +184,12 @@ export default function BattlePage() {
       {/* 双方角色信息 + 血条 */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         {/* 玩家侧 */}
-        <div className="pixel-card">
+        <div className="pixel-card flex flex-col">
           <p className="font-pixel text-pixel-green text-xs mb-1 truncate">{player.name}</p>
-          <p className="font-pixel-zh text-gray-500 text-xs mb-2 tracking-widest">{player.keywords?.replace(/、/g, '  ·  ')}</p>
+          <p className="font-pixel-zh text-gray-500 text-xs mb-1 tracking-widest">{player.keywords?.replace(/、/g, '  ·  ')}</p>
+          <p className="font-pixel-zh text-gray-600 text-xs mb-2">
+            🎮 {(() => { try { const u = JSON.parse(sessionStorage.getItem("user") || "{}"); return `${u.name} #${u.code} 创建`; } catch { return ""; } })()}
+          </p>
           <HpBar current={playerHp} max={player.max_hp} side="left" />
           <div className="grid grid-cols-3 gap-1 mt-2 text-xs text-gray-400">
             <span>STR {player.str}</span>
@@ -196,17 +199,12 @@ export default function BattlePage() {
         </div>
 
         {/* 对手侧 */}
-        <div className="pixel-card">
+        <div className="pixel-card flex flex-col">
           <p className="font-pixel text-red-400 text-xs mb-1 truncate">{opponent.name}</p>
-          <p className="font-pixel-zh text-gray-500 text-xs mb-2 tracking-widest">{opponent.keywords?.replace(/、/g, '  ·  ')}</p>
-          {opponentCreator && (
-            <p className="font-pixel-zh text-gray-600 text-xs mb-1">
-              🎮 {opponentCreator.name} #{opponentCreator.code} 创建
-            </p>
-          )}
-          {!opponentCreator && opponent.is_system && (
-            <p className="font-pixel-zh text-gray-600 text-xs mb-1">🤖 系统角色</p>
-          )}
+          <p className="font-pixel-zh text-gray-500 text-xs mb-1 tracking-widest">{opponent.keywords?.replace(/、/g, '  ·  ')}</p>
+          <p className="font-pixel-zh text-gray-600 text-xs mb-2">
+            {opponentCreator ? `🎮 ${opponentCreator.name} #${opponentCreator.code} 创建` : "\u00A0"}
+          </p>
           <HpBar current={opponentHp} max={opponent.max_hp} side="right" />
           <div className="grid grid-cols-3 gap-1 mt-2 text-xs text-gray-400">
             <span>STR {opponent.str}</span>
