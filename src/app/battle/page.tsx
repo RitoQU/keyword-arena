@@ -468,46 +468,7 @@ export default function BattlePage() {
             <p className="font-pixel-zh text-gray-300 text-sm">{summary}</p>
           </div>
 
-          {/* 对战统计 */}
-          <div className="pixel-card">
-            <div className="grid grid-cols-2 gap-4 text-center text-xs">
-              <div>
-                <p className="font-pixel text-pixel-green mb-1">{player.name}</p>
-                <p className="font-pixel-zh text-gray-400">
-                  总伤害: {rounds.filter((r) => r.attacker === "player" && !r.isMiss).reduce((s, r) => s + r.damage, 0)}
-                </p>
-                <p className="font-pixel-zh text-yellow-400">
-                  暴击: {rounds.filter((r) => r.attacker === "player" && r.isCrit).length} 次
-                </p>
-              </div>
-              <div>
-                <p className="font-pixel text-red-400 mb-1">{opponent.name}</p>
-                <p className="font-pixel-zh text-gray-400">
-                  总伤害: {rounds.filter((r) => r.attacker === "opponent" && !r.isMiss).reduce((s, r) => s + r.damage, 0)}
-                </p>
-                <p className="font-pixel-zh text-yellow-400">
-                  暴击: {rounds.filter((r) => r.attacker === "opponent" && r.isCrit).length} 次
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* 剩余对战提示 */}
-          {remainingBattles !== null && remainingBattles <= 5 && remainingBattles > 0 && (
-            <div className="pixel-card text-center" style={{ borderColor: "#ffd700" }}>
-              <p className="font-pixel-zh text-pixel-yellow text-sm">
-                ⚠️ 今日剩余 {remainingBattles} 场对战
-              </p>
-            </div>
-          )}
-          {remainingBattles !== null && remainingBattles <= 0 && (
-            <div className="pixel-card text-center" style={{ borderColor: "#ff4444" }}>
-              <p className="font-pixel-zh text-pixel-red text-sm">
-                今日对战次数已用完，明天再来吧！
-              </p>
-            </div>
-          )}
-
+          {/* ━━ 核心操作按钮（紧跟胜负判定） ━━ */}
           <div className="flex gap-4">
             <button onClick={() => router.push("/game")} className="pixel-btn-secondary flex-1">
               返回
@@ -536,6 +497,48 @@ export default function BattlePage() {
               ⚔️ 再来一局
             </button>
           </div>
+
+          {/* 剩余对战提示 */}
+          {remainingBattles !== null && remainingBattles <= 5 && remainingBattles > 0 && (
+            <div className="pixel-card text-center" style={{ borderColor: "#ffd700" }}>
+              <p className="font-pixel-zh text-pixel-yellow text-sm">
+                ⚠️ 今日剩余 {remainingBattles} 场对战
+              </p>
+            </div>
+          )}
+          {remainingBattles !== null && remainingBattles <= 0 && (
+            <div className="pixel-card text-center" style={{ borderColor: "#ff4444" }}>
+              <p className="font-pixel-zh text-pixel-red text-sm">
+                今日对战次数已用完，明天再来吧！
+              </p>
+            </div>
+          )}
+          <details className="group">
+            <summary className="pixel-card cursor-pointer flex items-center justify-between list-none text-center">
+              <span className="font-pixel-zh text-gray-400 text-xs">📊 对战统计</span>
+              <span className="font-pixel text-gray-600 text-xs group-open:rotate-90 transition-transform">▶</span>
+            </summary>
+            <div className="grid grid-cols-2 gap-4 text-center text-xs">
+              <div>
+                <p className="font-pixel text-pixel-green mb-1">{player.name}</p>
+                <p className="font-pixel-zh text-gray-400">
+                  总伤害: {rounds.filter((r) => r.attacker === "player" && !r.isMiss).reduce((s, r) => s + r.damage, 0)}
+                </p>
+                <p className="font-pixel-zh text-yellow-400">
+                  暴击: {rounds.filter((r) => r.attacker === "player" && r.isCrit).length} 次
+                </p>
+              </div>
+              <div>
+                <p className="font-pixel text-red-400 mb-1">{opponent.name}</p>
+                <p className="font-pixel-zh text-gray-400">
+                  总伤害: {rounds.filter((r) => r.attacker === "opponent" && !r.isMiss).reduce((s, r) => s + r.damage, 0)}
+                </p>
+                <p className="font-pixel-zh text-yellow-400">
+                  暴击: {rounds.filter((r) => r.attacker === "opponent" && r.isCrit).length} 次
+                </p>
+              </div>
+            </div>
+          </details>
         </div>
       )}
     </div>

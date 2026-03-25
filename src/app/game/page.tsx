@@ -76,8 +76,10 @@ export default function GamePage() {
 
       if (res.ok) {
         setCharacter(null);
+        setKeywords(["", "", ""]);
         sessionStorage.removeItem("character");
         setShowDeleteConfirm(false);
+        setError("");
       } else {
         const data = await res.json().catch(() => null);
         setError(data?.error || "删除失败");
@@ -233,6 +235,11 @@ export default function GamePage() {
             </div>
 
             {/* 核心操作区 — 始终在第一屏 */}
+            {error && (
+              <p className="font-pixel-zh text-pixel-red text-sm mb-3">
+                ⚠ {error}
+              </p>
+            )}
             <button
               onClick={() => router.push("/battle")}
               className="pixel-btn-primary w-full text-lg mb-3 py-4"
