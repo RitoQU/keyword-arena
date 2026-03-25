@@ -51,6 +51,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // 检查名字是否已被占用（名字唯一，code 可重复）
+    const { data: nameExists } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("name", nameUpper)
+      .limit(1)
+      .single();
+
+    if (nameExists) {
+      return NextResponse.json(
+        { error: `名字「${nameUpper}」已被占用，请换一个名字` },
+        { status: 409 }
+      );
+    }
+
     // 用户不存在，创建新用户
     const { data: newUser, error } = await supabaseAdmin
       .from("users")

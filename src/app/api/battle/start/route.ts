@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
       .eq("date", today)
       .single();
 
-    if (limit && limit.battles >= 20) {
+    if (limit && limit.battles >= 100) {
       return NextResponse.json(
-        { error: "今日对战次数已用完（20/20），请明天再来！" },
+        { error: "今日对战次数已用完（100/100），请明天再来！" },
         { status: 429 }
       );
     }
@@ -39,13 +39,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "找不到你的角色" }, { status: 404 });
     }
 
-    // 随机匹配对手（排除自己的角色，包含系统角色）
+    // 查询该角色已经打过的对手
+    const { data: pastBattles } = await supabaseAdmin
+      .from("battles")
+      .select("opponent_character_id")
+      .eq("player_character_id", characterId);
+    const foughtIds = new Set((pastBattles || []).map(b => b.opponent_character_id));
+
+    // 匹配对手：优先未打过的真人角色 → 未打过的系统角色 → 已打过的全部角色
     const { data: rawOpponents, error: oppErr } = await supabaseAdmin
       .from("characters")
       .select("*")
       .or(`user_id.neq.${userId},user_id.is.null`);
 
-    const allOpponents = rawOpponents || [];
+    const allOpponents = (rawOpponents || []) as Character[];
 
     if (oppErr || allOpponents.length === 0) {
       return NextResponse.json(
@@ -54,8 +61,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 随机选一个对手
-    const opponentChar = allOpponents[Math.floor(Math.random() * allOpponents.length)] as Character;
+    // 分组：未打过的真人 > 未打过的系统 > 已打过的全部
+    const unfoughtReal = allOpponents.filter(c => !foughtIds.has(c.id) && c.user_id !== null);
+    const unfoughtSystem = allOpponents.filter(c => !foughtIds.has(c.id) && c.user_id === null);
+    const pool = unfoughtReal.length > 0 ? unfoughtReal
+      : unfoughtSystem.length > 0 ? unfoughtSystem
+      : allOpponents;
+
+    const opponentChar = pool[Math.floor(Math.random() * pool.length)];
 
     // 获取对手的创建者信息（如果是玩家角色）
     let opponentCreator: { name: string; createdAt: string } | null = null;
@@ -116,7 +129,7 @@ export async function POST(request: NextRequest) {
         created_at: battle.created_at,
       },
       opponentCreator,
-      remainingBattles: 20 - ((limit?.battles || 0) + 1),
+      remainingBattles: 100 - ((limit?.battles || 0) + 1),
     });
   } catch (err) {
     console.error("Battle API error:", err);

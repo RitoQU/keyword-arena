@@ -31,13 +31,21 @@ export default function GamePage() {
   const handleGenerate = async () => {
     if (!user) return;
     setError("");
+
+    // 校验：必须填满 3 个关键词
+    const filledKeywords = keywords.filter(k => k.trim());
+    if (filledKeywords.length < 3) {
+      setError("请填满 3 个关键词");
+      return;
+    }
+
     setGenerating(true);
 
     try {
       const res = await fetch("/api/character/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, keywords: keywords.filter(k => k.trim()).join(" ") }),
+        body: JSON.stringify({ userId: user.id, keywords: filledKeywords.join(" ") }),
       });
 
       const data = await res.json();
@@ -119,10 +127,10 @@ export default function GamePage() {
               🎲 创建角色
             </h2>
             <p className="font-pixel-zh text-gray-400 text-sm mb-2">
-              输入 1-3 个关键词，AI 为你生成专属角色。
+              输入 3 个关键词，AI 为你生成专属角色。
             </p>
             <p className="font-pixel-zh text-gray-500 text-xs mb-5">
-              每个关键词最多5个字 · 留空则随机生成
+              每个关键词最多5个字 · 三个都要填哦
             </p>
 
             {/* 三个关键词宫格 */}
