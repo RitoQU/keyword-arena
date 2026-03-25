@@ -1,8 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { User, Character } from "@/lib/types";
+
+const FLAVOR_TEXTS = [
+  "正在翻阅命运之书...",
+  "挑选武器和防具中...",
+  "调配属性点数...",
+  "赋予角色灵魂...",
+  "编织技能咒语...",
+  "锻造传说装备...",
+  "测试战斗姿态...",
+  "刻画角色外貌...",
+  "注入关键词之力...",
+  "即将完成...",
+];
 
 export default function GamePage() {
   const router = useRouter();
@@ -13,6 +26,25 @@ export default function GamePage() {
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+  const [flavorIdx, setFlavorIdx] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 生成中的轮播文案 + 计时
+  useEffect(() => {
+    if (generating) {
+      setFlavorIdx(0);
+      setElapsed(0);
+      timerRef.current = setInterval(() => {
+        setElapsed((e) => e + 1);
+        setFlavorIdx((i) => (i + 1) % FLAVOR_TEXTS.length);
+      }, 2500);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [generating]);
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
@@ -183,13 +215,18 @@ export default function GamePage() {
               disabled={generating}
               className="pixel-btn-primary w-full text-base disabled:opacity-50"
             >
-              {generating ? "⏳ AI 生成中..." : "⚡ 生成角色"}
+              {generating ? "🔮 角色锻造中..." : "⚡ 生成角色"}
             </button>
 
             {generating && (
-              <p className="font-pixel-zh text-gray-500 text-xs text-center mt-3">
-                AI 正在构思你的角色，请稍候...
-              </p>
+              <div className="text-center mt-3 space-y-1">
+                <p className="font-pixel-zh text-pixel-yellow text-xs animate-pulse">
+                  {FLAVOR_TEXTS[flavorIdx]}
+                </p>
+                <p className="font-pixel text-gray-600 text-xs">
+                  {elapsed}s
+                </p>
+              </div>
             )}
           </div>
         )}
