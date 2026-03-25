@@ -175,6 +175,11 @@ export default function Home() {
                 </ul>
               </div>
 
+              <div>
+                <h3 className="text-pixel-green mb-1">🔑 账号说明</h3>
+                <p>你的「名字」+「识别码」就是你的游戏账号。下次登录时输入一样的名字和识别码，就能找回你的角色和战绩。请记住它们，并且不要告诉别人——识别码相当于你的密码。</p>
+              </div>
+
               <div className="border-t border-gray-700 pt-3 mt-3">
                 <h3 className="text-pixel-yellow mb-1">✨ Special Thanks</h3>
                 <p className="text-gray-400">Brickea — for the inspiration and support.</p>
@@ -192,11 +197,11 @@ export default function Home() {
       )}
 
       {/* 底部信息 (OPT-12) */}
-      <div className="absolute bottom-4 z-10 text-center">
-        <p className="font-pixel text-gray-700 text-xs">
+      <div className="absolute bottom-3 z-10 text-center opacity-40">
+        <p className="font-pixel text-gray-500" style={{ fontSize: '0.5rem' }}>
           EARLY ACCESS v0.2.0
         </p>
-        <p className="font-pixel-zh text-gray-700 text-xs mt-1">
+        <p className="font-pixel-zh text-gray-500 mt-0.5" style={{ fontSize: '0.6rem' }}>
           Designed by Rito × Copilot
         </p>
       </div>

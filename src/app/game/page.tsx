@@ -229,7 +229,7 @@ export default function GamePage() {
             </div>
 
             {/* 装备与技能详情 — 可折叠区域 */}
-            <details className="mb-4 group">
+            <details className="mb-4 group" open>
               <summary className="pixel-card cursor-pointer flex items-center justify-between list-none">
                 <span className="font-pixel-zh text-pixel-green text-sm">📋 角色详情</span>
                 <span className="font-pixel text-gray-600 text-xs group-open:rotate-90 transition-transform">▶</span>
