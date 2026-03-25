@@ -64,10 +64,11 @@ export default function BattlePage() {
   const router = useRouter();
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [visibleActions, setVisibleActions] = useState(0);
-  const [battlePhase, setBattlePhase] = useState<"loading" | "fighting" | "result">("loading");
+  const [battlePhase, setBattlePhase] = useState<"loading" | "intro" | "fighting" | "result">("loading");
   const [error, setError] = useState("");
   const [opponentCreator, setOpponentCreator] = useState<{ name: string; code: string } | null>(null);
   const [remainingBattles, setRemainingBattles] = useState<number | null>(null);
+  const [introStep, setIntroStep] = useState(0);
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -99,27 +100,47 @@ export default function BattlePage() {
       setBattleResult(data.result);
       setOpponentCreator(data.opponentCreator || null);
       setRemainingBattles(data.remainingBattles ?? null);
-      setBattlePhase("fighting");
+      setBattlePhase("intro"); // 先进入入场阶段
     } catch {
       setError("网络错误，请重试");
       setBattlePhase("result");
     }
   }
 
-  // 逐条显示战报
+  // 入场倒计时
+  useEffect(() => {
+    if (battlePhase !== "intro") return;
+    const steps = [
+      { delay: 800, step: 1 },   // 显示 "VS"
+      { delay: 1600, step: 2 },  // 显示 "READY"
+      { delay: 2400, step: 3 },  // 显示 "FIGHT!"
+      { delay: 3200, step: 4 },  // 进入战斗
+    ];
+    const timers = steps.map(({ delay, step }) =>
+      setTimeout(() => {
+        if (step === 4) setBattlePhase("fighting");
+        else setIntroStep(step);
+      }, delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [battlePhase]);
+
+  // 逐条显示战报（节奏放慢）
   useEffect(() => {
     if (battlePhase !== "fighting" || !battleResult) return;
     if (visibleActions >= battleResult.rounds.length) {
-      const timer = setTimeout(() => setBattlePhase("result"), 1000);
+      const timer = setTimeout(() => setBattlePhase("result"), 1500);
       return () => clearTimeout(timer);
     }
+    // 第一条多等一会，后面每条 1.2 秒
+    const delay = visibleActions === 0 ? 1500 : 1200;
     const timer = setTimeout(() => {
       setVisibleActions((v) => v + 1);
       // 自动滚动到底部
       if (logRef.current) {
         logRef.current.scrollTop = logRef.current.scrollHeight;
       }
-    }, 800);
+    }, delay);
     return () => clearTimeout(timer);
   }, [battlePhase, battleResult, visibleActions]);
 
@@ -195,11 +216,26 @@ export default function BattlePage() {
         </div>
       </div>
 
-      {/* VS 分隔 */}
+      {/* VS 分隔 / 入场动画 */}
       <div className="text-center mb-4">
-        <span className="font-pixel text-pixel-yellow text-sm">
-          {battlePhase === "fighting" ? `ROUND ${currentAction?.round || 1}` : ""}
-        </span>
+        {battlePhase === "intro" && (
+          <div className="py-4">
+            {introStep === 1 && (
+              <span className="font-pixel text-pixel-yellow text-4xl animate-pulse">⚡ VS ⚡</span>
+            )}
+            {introStep === 2 && (
+              <span className="font-pixel text-green-400 text-3xl animate-pulse">READY</span>
+            )}
+            {introStep === 3 && (
+              <span className="font-pixel text-red-400 text-4xl animate-ping">FIGHT!</span>
+            )}
+          </div>
+        )}
+        {battlePhase === "fighting" && (
+          <span className="font-pixel text-pixel-yellow text-sm">
+            ROUND {currentAction?.round || 1}
+          </span>
+        )}
       </div>
 
       {/* 战报日志 */}
@@ -264,6 +300,7 @@ export default function BattlePage() {
               onClick={() => {
                 setBattlePhase("loading");
                 setVisibleActions(0);
+                setIntroStep(0);
                 setBattleResult(null);
                 const userData = sessionStorage.getItem("user");
                 const charData = sessionStorage.getItem("character");
