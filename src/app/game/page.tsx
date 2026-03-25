@@ -168,153 +168,52 @@ export default function GamePage() {
         {/* 有角色：角色详情 */}
         {character && (
           <>
-            {/* 角色名和描述 */}
+            {/* 角色身份卡：名字 + 关键词 + 描述 + HP */}
             <div className="pixel-card mb-4">
-              <h2 className="font-pixel-zh text-pixel-yellow text-xl mb-1">
-                {character.name}
-              </h2>
-              <div className="flex items-baseline gap-2 mb-3">
+              <div className="flex justify-between items-start mb-1">
+                <h2 className="font-pixel-zh text-pixel-yellow text-xl truncate flex-1">
+                  {character.name}
+                </h2>
+                <span className="font-pixel text-pixel-red text-xs shrink-0 ml-2">
+                  HP {character.max_hp}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
                 <span className="font-pixel text-gray-600 text-xs shrink-0">Keywords:</span>
                 <span className="font-pixel-zh text-gray-400 text-sm">{character.keywords}</span>
               </div>
-              <p className="font-pixel-zh text-gray-300 text-sm">
+              <p className="font-pixel-zh text-gray-400 text-xs leading-relaxed">
                 {character.description}
               </p>
+              {/* 六维属性 — 紧凑单行 */}
+              <div className="grid grid-cols-6 gap-1 mt-3 pt-3 border-t border-gray-700">
+                {[
+                  { abbr: "STR", value: character.str },
+                  { abbr: "DEX", value: character.dex },
+                  { abbr: "CON", value: character.con },
+                  { abbr: "INT", value: character.int_val },
+                  { abbr: "WIS", value: character.wis },
+                  { abbr: "CHA", value: character.cha },
+                ].map((s) => (
+                  <div key={s.abbr} className="text-center">
+                    <p className="font-pixel text-gray-600 text-xs">{s.abbr}</p>
+                    <p className={`font-pixel text-xs ${s.value >= 16 ? "text-pixel-green" : s.value >= 12 ? "text-pixel-yellow" : s.value >= 8 ? "text-pixel-orange" : "text-pixel-red"}`}>
+                      {s.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* D&D 六维属性 */}
-            <div className="pixel-card mb-4">
-              <h3 className="font-pixel-zh text-pixel-green text-sm mb-3">
-                📊 基础属性
-              </h3>
-              <div className="grid grid-cols-3 gap-3">
-                <StatBar label="力量" abbr="STR" value={character.str} />
-                <StatBar label="敏捷" abbr="DEX" value={character.dex} />
-                <StatBar label="体质" abbr="CON" value={character.con} />
-                <StatBar label="智力" abbr="INT" value={character.int_val} />
-                <StatBar label="感知" abbr="WIS" value={character.wis} />
-                <StatBar label="魅力" abbr="CHA" value={character.cha} />
-              </div>
-              <div className="mt-3 text-center">
-                <span className="font-pixel text-pixel-red text-xs">
-                  HP: {character.max_hp}
-                </span>
-              </div>
-            </div>
+            {/* 核心操作区 — 始终在第一屏 */}
+            <button
+              onClick={() => router.push("/battle")}
+              className="pixel-btn-primary w-full text-lg mb-3 py-4"
+            >
+              ⚔️ 开始对战
+            </button>
 
-            {/* 武器 */}
-            {character.weapons?.length > 0 && (
-              <div className="pixel-card mb-4">
-                <h3 className="font-pixel-zh text-pixel-green text-sm mb-3">
-                  ⚔️ 武器
-                </h3>
-                {character.weapons.map((w, i) => (
-                  <div key={i} className="mb-2 last:mb-0">
-                    <div className="flex justify-between">
-                      <span className="font-pixel-zh text-pixel-yellow text-sm">
-                        {w.name}
-                      </span>
-                      <span className="font-pixel text-pixel-red text-xs">
-                        ATK {w.attack}
-                      </span>
-                    </div>
-                    <p className="font-pixel-zh text-gray-500 text-xs">
-                      {w.type} · {w.effect}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 防具 */}
-            {character.armors?.length > 0 && (
-              <div className="pixel-card mb-4">
-                <h3 className="font-pixel-zh text-pixel-green text-sm mb-3">
-                  🛡️ 防具
-                </h3>
-                {character.armors.map((a, i) => (
-                  <div key={i} className="mb-2 last:mb-0">
-                    <div className="flex justify-between">
-                      <span className="font-pixel-zh text-pixel-yellow text-sm">
-                        {a.name}
-                      </span>
-                      <span className="font-pixel text-pixel-blue text-xs">
-                        DEF {a.defense}
-                      </span>
-                    </div>
-                    <p className="font-pixel-zh text-gray-500 text-xs">
-                      {a.type} · {a.effect}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 技能 */}
-            {character.skills?.length > 0 && (
-              <div className="pixel-card mb-4">
-                <h3 className="font-pixel-zh text-pixel-green text-sm mb-3">
-                  ✨ 技能
-                </h3>
-                {character.skills.map((s, i) => (
-                  <div key={i} className="mb-2 last:mb-0">
-                    <div className="flex justify-between">
-                      <span className="font-pixel-zh text-pixel-purple text-sm">
-                        {s.name}
-                      </span>
-                      <span className="font-pixel text-pixel-orange text-xs">
-                        DMG {s.damage} · CD {s.cooldown}
-                      </span>
-                    </div>
-                    <p className="font-pixel-zh text-gray-500 text-xs">
-                      [{s.source}] {s.effect}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 特殊物品 */}
-            {character.items?.length > 0 && (
-              <div className="pixel-card mb-4">
-                <h3 className="font-pixel-zh text-pixel-green text-sm mb-3">
-                  🎒 特殊物品
-                </h3>
-                {character.items.map((item, i) => (
-                  <div key={i} className="mb-2 last:mb-0">
-                    <span className="font-pixel-zh text-pixel-yellow text-sm">
-                      {item.name}
-                    </span>
-                    <p className="font-pixel-zh text-gray-500 text-xs">
-                      {item.description}
-                    </p>
-                    <p className="font-pixel-zh text-gray-600 text-xs">
-                      效果：{item.effect}{" "}
-                      {item.power > 0 && `(力量 +${item.power})`}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 操作按钮 */}
-            <div className="flex gap-3 mb-4">
-              <button
-                onClick={() => router.push("/battle")}
-                className="pixel-btn-primary flex-1 text-base"
-              >
-                ⚔️ 开始对战
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="pixel-btn-danger text-sm"
-              >
-                删除
-              </button>
-            </div>
-
-            {/* 排行榜 + 历史记录 */}
-            <div className="flex gap-3 mb-4">
+            <div className="flex gap-3 mb-6">
               <button
                 onClick={() => router.push("/rankings")}
                 className="pixel-btn-secondary flex-1 text-sm"
@@ -326,6 +225,90 @@ export default function GamePage() {
                 className="pixel-btn-secondary flex-1 text-sm"
               >
                 📜 历史记录
+              </button>
+            </div>
+
+            {/* 装备与技能详情 — 可折叠区域 */}
+            <details className="mb-4 group">
+              <summary className="pixel-card cursor-pointer flex items-center justify-between list-none">
+                <span className="font-pixel-zh text-pixel-green text-sm">📋 角色详情</span>
+                <span className="font-pixel text-gray-600 text-xs group-open:rotate-90 transition-transform">▶</span>
+              </summary>
+
+              <div className="mt-2 space-y-3">
+                {/* 武器 */}
+                {character.weapons?.length > 0 && (
+                  <div className="pixel-card">
+                    <h3 className="font-pixel-zh text-pixel-green text-sm mb-2">⚔️ 武器</h3>
+                    {character.weapons.map((w, i) => (
+                      <div key={i} className="mb-2 last:mb-0">
+                        <div className="flex justify-between">
+                          <span className="font-pixel-zh text-pixel-yellow text-sm">{w.name}</span>
+                          <span className="font-pixel text-pixel-red text-xs">ATK {w.attack}</span>
+                        </div>
+                        <p className="font-pixel-zh text-gray-500 text-xs">{w.type} · {w.effect}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 防具 */}
+                {character.armors?.length > 0 && (
+                  <div className="pixel-card">
+                    <h3 className="font-pixel-zh text-pixel-green text-sm mb-2">🛡️ 防具</h3>
+                    {character.armors.map((a, i) => (
+                      <div key={i} className="mb-2 last:mb-0">
+                        <div className="flex justify-between">
+                          <span className="font-pixel-zh text-pixel-yellow text-sm">{a.name}</span>
+                          <span className="font-pixel text-pixel-blue text-xs">DEF {a.defense}</span>
+                        </div>
+                        <p className="font-pixel-zh text-gray-500 text-xs">{a.type} · {a.effect}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 技能 */}
+                {character.skills?.length > 0 && (
+                  <div className="pixel-card">
+                    <h3 className="font-pixel-zh text-pixel-green text-sm mb-2">✨ 技能</h3>
+                    {character.skills.map((s, i) => (
+                      <div key={i} className="mb-2 last:mb-0">
+                        <div className="flex justify-between">
+                          <span className="font-pixel-zh text-pixel-purple text-sm">{s.name}</span>
+                          <span className="font-pixel text-pixel-orange text-xs">DMG {s.damage} · CD {s.cooldown}</span>
+                        </div>
+                        <p className="font-pixel-zh text-gray-500 text-xs">[{s.source}] {s.effect}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 特殊物品 */}
+                {character.items?.length > 0 && (
+                  <div className="pixel-card">
+                    <h3 className="font-pixel-zh text-pixel-green text-sm mb-2">🎒 特殊物品</h3>
+                    {character.items.map((item, i) => (
+                      <div key={i} className="mb-2 last:mb-0">
+                        <span className="font-pixel-zh text-pixel-yellow text-sm">{item.name}</span>
+                        <p className="font-pixel-zh text-gray-500 text-xs">{item.description}</p>
+                        <p className="font-pixel-zh text-gray-600 text-xs">
+                          效果：{item.effect} {item.power > 0 && `(力量 +${item.power})`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </details>
+
+            {/* 危险操作 — 放最底部，远离主操作 */}
+            <div className="text-center mb-4">
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="font-pixel-zh text-gray-600 text-xs underline hover:text-red-400 transition-colors"
+              >
+                删除角色
               </button>
             </div>
 
@@ -363,39 +346,3 @@ export default function GamePage() {
   );
 }
 
-// 属性条组件
-function StatBar({
-  label,
-  abbr,
-  value,
-}: {
-  label: string;
-  abbr: string;
-  value: number;
-}) {
-  const percent = ((value - 3) / 17) * 100; // 3-20 映射到 0-100%
-  const color =
-    value >= 16
-      ? "bg-pixel-green"
-      : value >= 12
-        ? "bg-pixel-yellow"
-        : value >= 8
-          ? "bg-pixel-orange"
-          : "bg-pixel-red";
-
-  return (
-    <div>
-      <div className="flex justify-between mb-1">
-        <span className="font-pixel-zh text-gray-400 text-xs">{label}</span>
-        <span className="font-pixel text-white text-xs">{value}</span>
-      </div>
-      <div className="h-2 bg-black border border-gray-700">
-        <div
-          className={`h-full ${color} transition-all duration-300`}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-      <span className="font-pixel text-gray-600 text-xs">{abbr}</span>
-    </div>
-  );
-}
