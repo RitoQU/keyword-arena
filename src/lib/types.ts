@@ -38,12 +38,23 @@ export interface SpecialItem {
   power: number;
 }
 
+export interface VisualConfig {
+  archetype: string;
+  hat?: string;
+  wings?: string;
+  aura?: string;
+  held?: string;
+  mount?: string;
+  palette?: number;
+}
+
 export interface Character {
   id: string;
   user_id: string | null;
   name: string;
   keywords: string;
   description: string;
+  visual?: VisualConfig | null;
   str: number;
   dex: number;
   con: number;

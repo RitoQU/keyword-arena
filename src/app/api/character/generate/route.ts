@@ -57,6 +57,13 @@ ${tierGuide[powerTier]}
 {
   "name": "角色名字",
   "description": "角色的背景故事和外观描述（2-3句话）",
+  "visual": {
+    "archetype": "从以下原型中选一个最匹配的: warrior/mage/rogue/tank/dragon/vampire/baby/robot/fairy/ghost/slime/rider/insect/beast/bird/plant/demon/angel/ninja/king/skeleton/giant/fish/serpent/pumpkin/elemental/monk",
+    "hat": "可选: crown/horn/halo 或省略",
+    "wings": "可选: angel/demon/tiny 或省略",
+    "held": "可选: sword/staff/shield/bow/dual 或省略",
+    "aura": "可选: fire/ice/dark/holy 或省略"
+  },
   "str": 10,
   "dex": 10,
   "con": 10,
@@ -75,7 +82,12 @@ ${tierGuide[powerTier]}
   "items": [
     {"name": "物品名", "description": "物品描述", "effect": "效果描述", "power": 5}
   ]
-}`;
+}
+
+关于 visual 字段的说明：
+- archetype: 选择最能代表角色外观的原型。龙选dragon，吸血鬼选vampire，婴儿选baby，机器人选robot等
+- hat/wings/held/aura: 可选修饰。不需要的就省略该字段。例如天使可以加 wings:"angel"，不需要帽子就不写 hat
+- 选择时优先考虑关键词的直接含义，比如"火龙"应选 archetype:"dragon" + aura:"fire"`;
 }
 
 // 根据关键词判断角色强度等级
@@ -354,29 +366,56 @@ export async function POST(request: NextRequest) {
     const con = charData.con as number;
     const maxHp = con * 8 + 20;
 
-    // 写入数据库
-    const { data: character, error: insertError } = await supabaseAdmin
+    // 提取 visual 配置（清理无效值）
+    const rawVisual = charData.visual as Record<string, string> | undefined;
+    const validArchetypes = ["warrior","mage","rogue","tank","dragon","vampire","baby","robot","fairy","ghost","slime","rider","insect","beast","bird","plant","demon","angel","ninja","king","skeleton","giant","fish","serpent","pumpkin","elemental","monk"];
+    let visual = null;
+    if (rawVisual && typeof rawVisual === "object" && validArchetypes.includes(rawVisual.archetype)) {
+      visual = {
+        archetype: rawVisual.archetype,
+        ...(rawVisual.hat && { hat: rawVisual.hat }),
+        ...(rawVisual.wings && { wings: rawVisual.wings }),
+        ...(rawVisual.held && { held: rawVisual.held }),
+        ...(rawVisual.aura && { aura: rawVisual.aura }),
+      };
+    }
+
+    // 写入数据库（兼容：如果 visual 列尚不存在则不含该字段重试）
+    const basePayload = {
+      user_id: userId,
+      name: charData.name,
+      keywords: keywordList.join("、") || "随机生成",
+      description: charData.description,
+      str: charData.str,
+      dex: charData.dex,
+      con: charData.con,
+      int_val: charData.int_val,
+      wis: charData.wis,
+      cha: charData.cha,
+      max_hp: maxHp,
+      weapons: charData.weapons,
+      armors: charData.armors,
+      skills: charData.skills,
+      items: charData.items,
+      is_system: false,
+    };
+
+    let insertResult = await supabaseAdmin
       .from("characters")
-      .insert({
-        user_id: userId,
-        name: charData.name,
-        keywords: keywordList.join("、") || "随机生成",
-        description: charData.description,
-        str: charData.str,
-        dex: charData.dex,
-        con: charData.con,
-        int_val: charData.int_val,
-        wis: charData.wis,
-        cha: charData.cha,
-        max_hp: maxHp,
-        weapons: charData.weapons,
-        armors: charData.armors,
-        skills: charData.skills,
-        items: charData.items,
-        is_system: false,
-      })
+      .insert({ ...basePayload, visual })
       .select()
       .single();
+
+    // 如果因 visual 列不存在而失败，去掉 visual 重试
+    if (insertResult.error?.message?.includes("visual")) {
+      insertResult = await supabaseAdmin
+        .from("characters")
+        .insert(basePayload)
+        .select()
+        .single();
+    }
+
+    const { data: character, error: insertError } = insertResult;
 
     if (insertError) {
       console.error("Insert error:", insertError);
