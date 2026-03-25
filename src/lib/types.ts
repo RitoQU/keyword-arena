@@ -73,3 +73,32 @@ export interface DailyLimit {
   generations: number;
   battles: number;
 }
+
+// 对战相关类型
+export interface BattleAction {
+  round: number;
+  attacker: "player" | "opponent";
+  attackerName: string;
+  defenderName: string;
+  actionType: "normal_attack" | "skill" | "item_trigger";
+  actionName: string;
+  damage: number;
+  isCrit: boolean;
+  isMiss: boolean;
+  description: string;
+  playerHp: number;
+  opponentHp: number;
+  playerMaxHp: number;
+  opponentMaxHp: number;
+}
+
+export interface BattleResult {
+  id?: string;
+  player: Character;
+  opponent: Character;
+  winner: "player" | "opponent" | "draw";
+  rounds: BattleAction[];
+  totalRounds: number;
+  summary: string;
+  created_at?: string;
+}
