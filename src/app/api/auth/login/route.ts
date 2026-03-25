@@ -28,16 +28,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 查找用户
+    // 先按名字查找用户（名字是唯一标识）
     const { data: existingUser } = await supabaseAdmin
       .from("users")
       .select("*")
       .eq("name", nameUpper)
-      .eq("code", codeStr)
+      .limit(1)
       .single();
 
     if (existingUser) {
-      // 用户存在，查找其角色
+      // 名字已存在 — 校验识别码
+      if (existingUser.code !== codeStr) {
+        return NextResponse.json(
+          { error: "识别码错误，请检查后重试" },
+          { status: 401 }
+        );
+      }
+
+      // 识别码匹配 — 登录成功，查找角色
       const { data: character } = await supabaseAdmin
         .from("characters")
         .select("*")
@@ -51,22 +59,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 检查名字是否已被占用（名字唯一，code 可重复）
-    const { data: nameExists } = await supabaseAdmin
-      .from("users")
-      .select("id")
-      .eq("name", nameUpper)
-      .limit(1)
-      .single();
-
-    if (nameExists) {
-      return NextResponse.json(
-        { error: `名字「${nameUpper}」已被占用，请换一个名字` },
-        { status: 409 }
-      );
-    }
-
-    // 用户不存在，创建新用户
+    // 名字不存在 — 创建新用户
     const { data: newUser, error } = await supabaseAdmin
       .from("users")
       .insert({ name: nameUpper, code: codeStr })
@@ -74,6 +67,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      // UNIQUE 约束冲突 = 并发注册同名，按"名字已存在"处理
+      if (error.code === "23505") {
+        return NextResponse.json(
+          { error: "该名字刚被其他人注册，请换一个名字" },
+          { status: 409 }
+        );
+      }
       return NextResponse.json({ error: "创建用户失败" }, { status: 500 });
     }
 
