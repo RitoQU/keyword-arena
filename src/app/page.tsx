@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
 
@@ -53,7 +55,10 @@ export default function Home() {
             showButtons ? "opacity-100" : "opacity-0"
           }`}
         >
-          <button className="pixel-btn-primary w-64 text-lg">
+          <button
+            onClick={() => router.push("/login")}
+            className="pixel-btn-primary w-64 text-lg"
+          >
             ▶ 开始游戏
           </button>
 
