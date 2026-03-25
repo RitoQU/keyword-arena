@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
       const errText = await response.text();
       console.error("MiniMax API error:", response.status, errText);
       return NextResponse.json(
-        { error: "AI 生成失败，请重试" },
+        { error: `AI 生成失败 (${response.status}): ${errText.slice(0, 200)}` },
         { status: 502 }
       );
     }
