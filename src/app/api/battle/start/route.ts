@@ -67,15 +67,15 @@ export async function POST(request: NextRequest) {
     const opponentChar = allOpponents[Math.floor(Math.random() * allOpponents.length)] as Character;
 
     // 获取对手的创建者信息（如果是玩家角色）
-    let opponentCreator: { name: string; code: string } | null = null;
+    let opponentCreator: { name: string; createdAt: string } | null = null;
     if (opponentChar.user_id) {
       const { data: creatorUser } = await supabaseAdmin
         .from("users")
-        .select("name, code")
+        .select("name, created_at")
         .eq("id", opponentChar.user_id)
         .single();
       if (creatorUser) {
-        opponentCreator = creatorUser;
+        opponentCreator = { name: creatorUser.name, createdAt: creatorUser.created_at };
       }
     }
 

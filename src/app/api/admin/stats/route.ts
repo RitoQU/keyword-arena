@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       .slice(0, 10)
       .map(([id, count]) => {
         const u = userMap.get(id);
-        return { name: u?.name || "?", code: u?.code || "?", battles: count };
+        return { name: u?.name || "?", battles: count };
       });
 
     // 平均回合数

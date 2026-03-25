@@ -17,7 +17,7 @@ interface AdminStats {
   dailyBattles: { date: string; count: number }[];
   winDistribution: { player: number; opponent: number; draw: number };
   topKeywords: { keyword: string; count: number }[];
-  topPlayers: { name: string; code: string; battles: number }[];
+  topPlayers: { name: string; battles: number }[];
 }
 
 export default function AdminPage() {
@@ -198,7 +198,7 @@ export default function AdminPage() {
               <div key={i} className="flex items-center justify-between">
                 <span className="font-pixel text-gray-500 text-xs w-6">#{i + 1}</span>
                 <span className="font-pixel-zh text-gray-300 text-sm flex-1">
-                  {p.name} #{p.code}
+                  {p.name}
                 </span>
                 <span className="font-pixel text-pixel-yellow text-xs">{p.battles} 场</span>
               </div>

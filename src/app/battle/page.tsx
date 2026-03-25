@@ -66,7 +66,7 @@ export default function BattlePage() {
   const [visibleActions, setVisibleActions] = useState(0);
   const [battlePhase, setBattlePhase] = useState<"loading" | "intro" | "fighting" | "result">("loading");
   const [error, setError] = useState("");
-  const [opponentCreator, setOpponentCreator] = useState<{ name: string; code: string } | null>(null);
+  const [opponentCreator, setOpponentCreator] = useState<{ name: string; createdAt: string } | null>(null);
   const [remainingBattles, setRemainingBattles] = useState<number | null>(null);
   const [introStep, setIntroStep] = useState(0);
   const logRef = useRef<HTMLDivElement>(null);
@@ -188,7 +188,7 @@ export default function BattlePage() {
           <p className="font-pixel text-pixel-green text-xs mb-1 truncate">{player.name}</p>
           <p className="font-pixel-zh text-gray-500 text-xs mb-1 tracking-widest">{player.keywords?.replace(/、/g, '  ·  ')}</p>
           <p className="font-pixel-zh text-gray-600 text-xs mb-2">
-            🎮 {(() => { try { const u = JSON.parse(sessionStorage.getItem("user") || "{}"); return `${u.name} #${u.code} 创建`; } catch { return ""; } })()}
+            🎮 {(() => { try { const u = JSON.parse(sessionStorage.getItem("user") || "{}"); const c = JSON.parse(sessionStorage.getItem("character") || "{}"); return `${u.name} · ${c.created_at ? new Date(c.created_at).toLocaleDateString("zh-CN") : ""} 创建`; } catch { return ""; } })()}
           </p>
           <HpBar current={playerHp} max={player.max_hp} side="left" />
           <div className="grid grid-cols-3 gap-1 mt-2 text-xs text-gray-400">
@@ -203,7 +203,7 @@ export default function BattlePage() {
           <p className="font-pixel text-red-400 text-xs mb-1 truncate">{opponent.name}</p>
           <p className="font-pixel-zh text-gray-500 text-xs mb-1 tracking-widest">{opponent.keywords?.replace(/、/g, '  ·  ')}</p>
           <p className="font-pixel-zh text-gray-600 text-xs mb-2">
-            {opponentCreator ? `🎮 ${opponentCreator.name} #${opponentCreator.code} 创建` : "\u00A0"}
+            {opponentCreator ? `🎮 ${opponentCreator.name} · ${new Date(opponentCreator.createdAt).toLocaleDateString("zh-CN")} 创建` : "\u00A0"}
           </p>
           <HpBar current={opponentHp} max={opponent.max_hp} side="right" />
           <div className="grid grid-cols-3 gap-1 mt-2 text-xs text-gray-400">

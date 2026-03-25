@@ -173,9 +173,10 @@ export default function GamePage() {
               <h2 className="font-pixel-zh text-pixel-yellow text-xl mb-1">
                 {character.name}
               </h2>
-              <p className="font-pixel text-gray-600 text-xs mb-3">
-                Keywords: {character.keywords}
-              </p>
+              <div className="flex items-baseline gap-2 mb-3">
+                <span className="font-pixel text-gray-600 text-xs shrink-0">Keywords:</span>
+                <span className="font-pixel-zh text-gray-400 text-sm">{character.keywords}</span>
+              </div>
               <p className="font-pixel-zh text-gray-300 text-sm">
                 {character.description}
               </p>
