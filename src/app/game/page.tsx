@@ -8,7 +8,7 @@ export default function GamePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [character, setCharacter] = useState<Character | null>(null);
-  const [keywords, setKeywords] = useState("");
+  const [keywords, setKeywords] = useState(["", "", ""]);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -36,7 +36,7 @@ export default function GamePage() {
       const res = await fetch("/api/character/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, keywords }),
+        body: JSON.stringify({ userId: user.id, keywords: keywords.filter(k => k.trim()).join(" ") }),
       });
 
       const data = await res.json();
@@ -112,21 +112,36 @@ export default function GamePage() {
             <h2 className="font-pixel-zh text-pixel-yellow text-lg mb-4">
               🎲 创建角色
             </h2>
-            <p className="font-pixel-zh text-gray-400 text-sm mb-4">
-              输入1-3个关键词，生成你的专属角色。
-              <br />
-              每个关键词最多5个中文字。不输入则随机生成。
+            <p className="font-pixel-zh text-gray-400 text-sm mb-2">
+              输入 1-3 个关键词，AI 为你生成专属角色。
+            </p>
+            <p className="font-pixel-zh text-gray-500 text-xs mb-5">
+              每个关键词最多5个字 · 留空则随机生成
             </p>
 
-            <input
-              type="text"
-              value={keywords}
-              onChange={(e) => setKeywords(e.target.value)}
-              placeholder="例：火焰 战士 龙"
-              className="pixel-input w-full mb-4"
-              disabled={generating}
-              maxLength={20}
-            />
+            {/* 三个关键词宫格 */}
+            <div className="grid grid-cols-3 gap-4 mb-5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="text-center">
+                  <label className="font-pixel text-gray-500 text-xs block mb-2">
+                    {["① ", "② ", "③ "][i]}
+                  </label>
+                  <input
+                    type="text"
+                    value={keywords[i]}
+                    onChange={(e) => {
+                      const newKw = [...keywords];
+                      newKw[i] = e.target.value.slice(0, 5);
+                      setKeywords(newKw);
+                    }}
+                    placeholder={["火焰", "战士", "龙"][i]}
+                    className="pixel-input w-full text-center text-base"
+                    disabled={generating}
+                    maxLength={5}
+                  />
+                </div>
+              ))}
+            </div>
 
             {error && (
               <p className="font-pixel-zh text-pixel-red text-sm mb-4">
