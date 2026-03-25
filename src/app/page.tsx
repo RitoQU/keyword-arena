@@ -174,6 +174,11 @@ export default function Home() {
                   <li>不同关键词会生成不同风格的角色</li>
                 </ul>
               </div>
+
+              <div className="border-t border-gray-700 pt-3 mt-3">
+                <h3 className="text-pixel-yellow mb-1">✨ Special Thanks</h3>
+                <p className="text-gray-400">Brickea — for the inspiration and support.</p>
+              </div>
             </div>
 
             <button
@@ -192,7 +197,7 @@ export default function Home() {
           EARLY ACCESS v0.2.0
         </p>
         <p className="font-pixel-zh text-gray-700 text-xs mt-1">
-          Designed by RITO × Copilot
+          Designed by Rito × Copilot
         </p>
       </div>
 
