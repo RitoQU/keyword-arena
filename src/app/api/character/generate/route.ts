@@ -10,10 +10,11 @@ function buildPrompt(keywords: string[], powerTier: string): string {
 
   // 根据 powerTier 设定属性范围
   const tierGuide: Record<string, string> = {
-    legendary: "属性总点数在78-85之间，武器攻击力15-25，技能伤害30-50，防具防御力12-20。这个角色应当极其强大。",
-    epic: "属性总点数在72-80之间，武器攻击力12-22，技能伤害25-40，防具防御力10-18。",
-    rare: "属性总点数在65-75之间，武器攻击力10-18，技能伤害20-35，防具防御力8-15。",
-    common: "属性总点数在55-68之间，武器攻击力6-14，技能伤害12-25，防具防御力5-12。角色虽然平凡但也有独特之处。",
+    legendary: "属性总点数在78-85之间，单项属性可达18-20，武器攻击力15-25，技能伤害30-50，防具防御力12-20。这个角色应当极其强大，是传说级别的存在。",
+    epic: "属性总点数在70-78之间，武器攻击力12-22，技能伤害25-40，防具防御力10-18。这是一个强大的角色。",
+    rare: "属性总点数在58-69之间，武器攻击力8-16，技能伤害15-30，防具防御力6-14。",
+    common: "属性总点数在45-57之间，武器攻击力5-12，技能伤害8-20，防具防御力4-10。角色虽然平凡但也有独特之处。",
+    weak: "属性总点数在25-44之间，大部分属性在3-8，最高单项不超过10。武器攻击力2-8，技能伤害3-12，防具防御力2-6。这个角色非常弱小、可爱或滑稽，但也有自己的小特点。",
   };
 
   // 随机风格提示，确保相同关键词产出不同角色 (OPT-13)
@@ -32,11 +33,13 @@ function buildPrompt(keywords: string[], powerTier: string): string {
 创意种子：#${randomId}（请基于这个随机种子发挥创意，确保每次生成都不同）
 风格倾向：${styleSeed}
 
-⚠️ 重要规则 — 关键词强度感知：
-角色的强度必须与关键词暗示的力量等级匹配。
+⚠️ 重要规则 — 关键词强度感知（最高权重规则）：
+角色的强度必须严格与关键词暗示的力量等级匹配。这是最重要的规则，不可违反。
 - 如果关键词暗示了传奇/神话级别的存在（如：超人、神、无限宝石、灭霸、宇宙、毁灭），角色应有极高的属性
-- 如果关键词暗示了普通/日常事物（如：橘子、普通人、铅笔、蚂蚁），角色属性应偏低
-- 关键词的想象力和创意很重要，但不应让"普通橘子"打败"超人"
+- 如果关键词暗示了普通/日常事物（如：橘子、普通人、铅笔、蜗牛），角色属性应偏低
+- 如果关键词暗示了弱小/幼小/无害的存在（如：婴儿、蚂蚁、肥皂泡、毛毛虫、纸飞机），角色属性必须非常低，大部分属性在3-7之间
+- 关键词的想象力和创意很重要，但不应让"婴儿"拥有和"战神"一样的属性
+- 请严格遵循上方「强度等级」给出的属性总点数范围，不要超出
 
 当前角色的强度等级：${powerTier.toUpperCase()}
 ${tierGuide[powerTier]}
@@ -103,11 +106,28 @@ function assessPowerTier(keywords: string[]): string {
   // 普通级关键词
   const commonPatterns = [
     "普通", "平凡", "日常", "办公", "上班",
-    "橘子", "桔子", "苹果", "香蕉", "水果", "蔬菜",
-    "铅笔", "橡皮", "书包", "作业", "课本",
-    "蜗牛", "蚯蚓", "地鼠", "鸽子",
-    "路人", "行人", "学生", "打工人",
-    "拖鞋", "袜子", "毛巾",
+    "橘子", "桔子", "苹果", "香蕉", "水果", "蔬菜", "白菜", "土豆",
+    "铅笔", "橡皮", "书包", "作业", "课本", "文具",
+    "蜗牛", "蚯蚓", "地鼠", "鸽子", "麻雀", "仓鼠",
+    "路人", "行人", "学生", "打工人", "咸鱼",
+    "拖鞋", "袜子", "毛巾", "枕头", "被子",
+    "石头", "砖头", "泥巴", "沙子",
+  ];
+
+  // 弱小级关键词 — 真正弱小、幼小、无害的存在
+  const weakPatterns = [
+    "婴儿", "宝宝", "幼儿", "新生儿", "胎儿",
+    "奶嘴", "奶瓶", "尿布", "奶粉", "摇篮", "围嘴",
+    "蚂蚁", "蚊子", "苍蝇", "跳蚤", "虱子", "蜉蝣", "浮游",
+    "毛毛虫", "蚕宝宝", "蝌蚪", "小蝌蚪",
+    "肥皂泡", "泡泡", "棉花糖", "棒棒糖",
+    "纸飞机", "纸船", "纸巾", "卫生纸", "厕纸",
+    "灰尘", "尘埃", "落叶", "枯叶", "草",
+    "小草", "杂草", "苔藓", "菌类",
+    "气球", "羽毛", "绒毛", "雪花",
+    "废物", "垃圾", "渣渣", "战五渣", "菜鸡", "弱鸡",
+    "树叶", "花瓣", "种子", "豆芽",
+    "小虾米", "浮萍", "蒲公英",
   ];
 
   for (const p of legendaryPatterns) {
@@ -115,6 +135,9 @@ function assessPowerTier(keywords: string[]): string {
   }
   for (const p of epicPatterns) {
     if (combined.includes(p)) return "epic";
+  }
+  for (const p of weakPatterns) {
+    if (combined.includes(p)) return "weak";
   }
   for (const p of commonPatterns) {
     if (combined.includes(p)) return "common";
@@ -135,10 +158,17 @@ function validateCharacter(data: Record<string, unknown>, powerTier: string): st
     total += val as number;
   }
 
-  // 根据等级放宽校验范围
-  const maxTotal = powerTier === "legendary" ? 95 : powerTier === "epic" ? 90 : 90;
-  if (total < 40 || total > maxTotal) {
-    return `属性总和 ${total} 超出范围 (40-${maxTotal})`;
+  // 根据等级校验范围
+  const tierLimits: Record<string, { min: number; max: number }> = {
+    legendary: { min: 60, max: 95 },
+    epic: { min: 50, max: 85 },
+    rare: { min: 40, max: 75 },
+    common: { min: 30, max: 65 },
+    weak: { min: 18, max: 50 },
+  };
+  const limits = tierLimits[powerTier] || { min: 30, max: 80 };
+  if (total < limits.min || total > limits.max) {
+    return `属性总和 ${total} 超出${powerTier}等级范围 (${limits.min}-${limits.max})`;
   }
 
   if (!data.name || typeof data.name !== "string") return "缺少名字";

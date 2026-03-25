@@ -39,28 +39,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "找不到你的角色" }, { status: 404 });
     }
 
-    // 随机匹配对手（排除自己的角色）
+    // 随机匹配对手（排除自己的角色，包含系统角色）
     const { data: rawOpponents, error: oppErr } = await supabaseAdmin
       .from("characters")
       .select("*")
-      .neq("user_id", userId);
+      .or(`user_id.neq.${userId},user_id.is.null`);
 
-    let allOpponents = rawOpponents || [];
+    const allOpponents = rawOpponents || [];
 
     if (oppErr || allOpponents.length === 0) {
-      // 找系统角色
-      const { data: sysChars } = await supabaseAdmin
-        .from("characters")
-        .select("*")
-        .eq("is_system", true);
-
-      if (!sysChars || sysChars.length === 0) {
-        return NextResponse.json(
-          { error: "没有可匹配的对手，请等待更多玩家加入！" },
-          { status: 404 }
-        );
-      }
-      allOpponents = sysChars;
+      return NextResponse.json(
+        { error: "没有可匹配的对手，请等待更多玩家加入！" },
+        { status: 404 }
+      );
     }
 
     // 随机选一个对手
