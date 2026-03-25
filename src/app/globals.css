@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+/* 像素风自定义主题 */
+@theme {
+  --font-pixel: "Press Start 2P", monospace;
+  --font-pixel-zh: "ZCOOL QingKe HuangYou", "Press Start 2P", cursive;
+
+  --color-pixel-green: #00ff41;
+  --color-pixel-red: #ff0040;
+  --color-pixel-yellow: #ffd700;
+  --color-pixel-blue: #00bfff;
+  --color-pixel-purple: #bf00ff;
+  --color-pixel-orange: #ff8c00;
+  --color-pixel-dark: #0a0a0a;
+  --color-pixel-gray: #1a1a2e;
+  --color-pixel-border: #333366;
+}
+
+/* 像素风全局样式 */
+* {
+  image-rendering: pixelated;
+}
+
+/* 像素风按钮基础样式 */
+.pixel-btn {
+  padding: 0.75rem 1.5rem;
+  font-family: "ZCOOL QingKe HuangYou", "Press Start 2P", cursive;
+  font-size: 0.875rem;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 100ms;
+  box-shadow: 4px 4px 0px #000;
+}
+
+.pixel-btn:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+.pixel-btn-primary {
+  padding: 0.75rem 1.5rem;
+  font-family: "ZCOOL QingKe HuangYou", "Press Start 2P", cursive;
+  font-size: 0.875rem;
+  border: 2px solid #86efac;
+  cursor: pointer;
+  transition: all 100ms;
+  box-shadow: 4px 4px 0px #000;
+  background-color: #00ff41;
+  color: #000;
+}
+
+.pixel-btn-primary:hover {
+  background-color: #86efac;
+}
+
+.pixel-btn-primary:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+.pixel-btn-danger {
+  padding: 0.75rem 1.5rem;
+  font-family: "ZCOOL QingKe HuangYou", "Press Start 2P", cursive;
+  font-size: 0.875rem;
+  border: 2px solid #fca5a5;
+  cursor: pointer;
+  transition: all 100ms;
+  box-shadow: 4px 4px 0px #000;
+  background-color: #ff0040;
+  color: #fff;
+}
+
+.pixel-btn-danger:hover {
+  background-color: #fca5a5;
+}
+
+.pixel-btn-danger:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+.pixel-btn-secondary {
+  padding: 0.75rem 1.5rem;
+  font-family: "ZCOOL QingKe HuangYou", "Press Start 2P", cursive;
+  font-size: 0.875rem;
+  border: 2px solid #333366;
+  cursor: pointer;
+  transition: all 100ms;
+  box-shadow: 4px 4px 0px #000;
+  background-color: #1a1a2e;
+  color: #fff;
+}
+
+.pixel-btn-secondary:hover {
+  background-color: #374151;
+}
+
+.pixel-btn-secondary:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+/* 像素风卡片 */
+.pixel-card {
+  background-color: #1a1a2e;
+  border: 2px solid #333366;
+  padding: 1rem;
+  box-shadow: 4px 4px 0px #000;
+}
+
+/* 像素风输入框 */
+.pixel-input {
+  background-color: #000;
+  border: 2px solid #333366;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  font-family: "ZCOOL QingKe HuangYou", "Press Start 2P", cursive;
+  outline: none;
+  transition: border-color 200ms;
+}
+
+.pixel-input:focus {
+  border-color: #00ff41;
+}
+
+/* 像素风闪烁动画 */
+@keyframes pixel-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.pixel-blink {
+  animation: pixel-blink 1s step-end infinite;
+}
+
+/* 像素风扫描线效果 */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scanline-overlay {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  z-index: 50;
+}
+
+/* 血条样式 */
+.health-bar {
+  height: 1rem;
+  border: 2px solid #333366;
+  background-color: #000;
+}
+
+.health-bar-fill {
+  height: 100%;
+  transition: all 500ms;
+  background: linear-gradient(180deg, #00ff41 0%, #008f11 100%);
+}
+
+.health-bar-fill.low {
+  background: linear-gradient(180deg, #ffd700 0%, #cc8800 100%);
+}
+
+.health-bar-fill.critical {
+  background: linear-gradient(180deg, #ff0040 0%, #990025 100%);
+}
+
+/* 滚动条像素风 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: #333366;
+  border: 1px solid #0a0a0a;
+}
