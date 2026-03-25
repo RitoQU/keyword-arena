@@ -12,6 +12,7 @@ export default function GamePage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
@@ -69,9 +70,14 @@ export default function GamePage() {
         setCharacter(null);
         sessionStorage.removeItem("character");
         setShowDeleteConfirm(false);
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error || "删除失败");
+        setShowDeleteConfirm(false);
       }
     } catch {
       setError("删除失败");
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -129,7 +135,20 @@ export default function GamePage() {
                   <input
                     type="text"
                     value={keywords[i]}
+                    onCompositionStart={() => setIsComposing(true)}
+                    onCompositionEnd={(e) => {
+                      setIsComposing(false);
+                      const newKw = [...keywords];
+                      newKw[i] = (e.target as HTMLInputElement).value.slice(0, 5);
+                      setKeywords(newKw);
+                    }}
                     onChange={(e) => {
+                      if (isComposing) {
+                        const newKw = [...keywords];
+                        newKw[i] = e.target.value;
+                        setKeywords(newKw);
+                        return;
+                      }
                       const newKw = [...keywords];
                       newKw[i] = e.target.value.slice(0, 5);
                       setKeywords(newKw);

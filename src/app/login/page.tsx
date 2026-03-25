@@ -37,7 +37,11 @@ export default function LoginPage() {
         return;
       }
 
-      // 存储登录信息到 sessionStorage
+      // 切换账号时先清空旧数据，防止角色错乱
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("character");
+
+      // 存储新登录信息
       sessionStorage.setItem("user", JSON.stringify(data.user));
       if (data.character) {
         sessionStorage.setItem("character", JSON.stringify(data.character));
