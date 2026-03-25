@@ -3,7 +3,24 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "关键词竞技场 | Keyword Arena",
-  description: "输入关键词，生成角色，回合制对战！",
+  description: "输入关键词，AI 生成角色，回合制对战！像素风 RPG 竞技场，每个关键词都是一场冒险。",
+  metadataBase: new URL("https://keyword-arena.vercel.app"),
+  openGraph: {
+    title: "⚔️ 关键词竞技场 | Keyword Arena",
+    description: "🎲 输入关键词 → 🤖 AI生成角色 → ⚔️ 回合制对战！像素风 RPG 竞技场，来创造你的专属角色吧！",
+    url: "https://keyword-arena.vercel.app",
+    siteName: "Keyword Arena",
+    locale: "zh_CN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "⚔️ 关键词竞技场 | Keyword Arena",
+    description: "🎲 输入关键词 → 🤖 AI生成角色 → ⚔️ 回合制对战！",
+  },
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>",
+  },
 };
 
 export const viewport: Viewport = {
