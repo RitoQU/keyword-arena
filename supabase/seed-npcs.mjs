@@ -1,6 +1,17 @@
 // 预生成 100 个系统角色的脚本
 // 运行方式：在项目根目录执行 node supabase/seed-npcs.mjs
 
+import { readFileSync } from "fs";
+const envContent = readFileSync(".env.local", "utf8");
+for (const line of envContent.split("\n")) {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith("#")) continue;
+  const eqIdx = trimmed.indexOf("=");
+  if (eqIdx > 0) {
+    process.env[trimmed.slice(0, eqIdx)] = trimmed.slice(eqIdx + 1);
+  }
+}
+
 const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

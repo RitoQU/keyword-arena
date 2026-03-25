@@ -297,6 +297,22 @@ export default function GamePage() {
               </button>
             </div>
 
+            {/* 排行榜 + 历史记录 */}
+            <div className="flex gap-3 mb-4">
+              <button
+                onClick={() => router.push("/rankings")}
+                className="pixel-btn-secondary flex-1 text-sm"
+              >
+                🏆 排行榜
+              </button>
+              <button
+                onClick={() => router.push("/history")}
+                className="pixel-btn-secondary flex-1 text-sm"
+              >
+                📜 历史记录
+              </button>
+            </div>
+
             {/* 删除确认弹窗 */}
             {showDeleteConfirm && (
               <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
