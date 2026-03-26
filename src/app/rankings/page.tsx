@@ -68,10 +68,10 @@ export default function RankingsPage() {
           {/* 表头 */}
           <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs">
             <span className="col-span-1 font-pixel text-gray-500">#</span>
-            <span className="col-span-4 font-pixel-zh text-gray-500">玩家</span>
-            <span className="col-span-3 font-pixel-zh text-gray-500">当前角色</span>
+            <span className="col-span-3 font-pixel-zh text-gray-500">玩家</span>
             <span className="col-span-2 font-pixel text-gray-500 text-right">W/L</span>
             <span className="col-span-2 font-pixel text-gray-500 text-right">WIN%</span>
+            <span className="col-span-4 font-pixel-zh text-gray-500 text-right">当前角色</span>
           </div>
 
           {rankings.map((r, idx) => {
@@ -87,14 +87,9 @@ export default function RankingsPage() {
                 <span className="col-span-1 font-pixel text-sm flex items-center">
                   {medalEmoji(idx)}
                 </span>
-                <div className="col-span-4">
+                <div className="col-span-3">
                   <p className={`font-pixel text-xs truncate ${isMe ? "text-pixel-green" : "text-white"}`}>
                     {r.userName}
-                  </p>
-                </div>
-                <div className="col-span-3">
-                  <p className="font-pixel-zh text-pixel-yellow text-xs truncate">
-                    {r.characterName}
                   </p>
                 </div>
                 <div className="col-span-2 text-right">
@@ -113,6 +108,11 @@ export default function RankingsPage() {
                   >
                     {r.winRate}%
                   </span>
+                </div>
+                <div className="col-span-4 text-right">
+                  <p className="font-pixel-zh text-pixel-yellow text-xs truncate">
+                    {r.characterName}
+                  </p>
                 </div>
               </div>
             );
