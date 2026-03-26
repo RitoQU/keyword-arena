@@ -23,6 +23,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "角色不存在" }, { status: 404 });
     }
 
+    // 解除 battles 表中对该角色的外键引用（保留对战历史，仅置空关联）
+    await supabaseAdmin
+      .from("battles")
+      .update({ player_character_id: null })
+      .eq("player_character_id", characterId);
+
+    await supabaseAdmin
+      .from("battles")
+      .update({ opponent_character_id: null })
+      .eq("opponent_character_id", characterId);
+
     const { error } = await supabaseAdmin
       .from("characters")
       .delete()
