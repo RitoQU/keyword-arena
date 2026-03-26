@@ -79,7 +79,7 @@ export default function RankingsPage() {
             return (
               <div
                 key={r.userId}
-                className={`grid grid-cols-12 gap-2 px-3 py-3 pixel-card ${
+                className={`grid grid-cols-12 gap-2 px-3 py-3 items-center pixel-card ${
                   isMe ? "border-pixel-green" : ""
                 }`}
                 style={isMe ? { borderColor: "#00ff41" } : undefined}
