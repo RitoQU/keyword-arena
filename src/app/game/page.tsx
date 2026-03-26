@@ -215,7 +215,7 @@ export default function GamePage() {
               disabled={generating}
               className="pixel-btn-primary w-full text-base disabled:opacity-50"
             >
-              {generating ? "🔮 角色锻造中..." : "⚡ 生成角色"}
+              {generating ? "🔮 角色锻造中..." : "⚡ 创建"}
             </button>
 
             {generating && (
