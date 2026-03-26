@@ -142,9 +142,6 @@ export default function GamePage() {
             <span className="font-pixel text-pixel-green text-xs">
               {user.name}
             </span>
-            <span className="font-pixel text-gray-600 text-xs ml-2">
-              #{user.code}
-            </span>
           </div>
           <button
             onClick={handleLogout}
