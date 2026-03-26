@@ -2,7 +2,7 @@
 
 /* 像素风自定义主题 */
 @theme {
-  --font-pixel: "Press Start 2P", monospace;
+  --font-pixel: "Press Start 2P", "ZCOOL QingKe HuangYou", monospace;
   --font-pixel-zh: "ZCOOL QingKe HuangYou", "Press Start 2P", cursive;
 
   --color-pixel-green: #00ff41;
