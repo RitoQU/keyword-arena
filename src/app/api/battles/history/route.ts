@@ -26,12 +26,11 @@ export async function GET(request: NextRequest) {
 
     // 获取角色名
     const charIds = [
-      ...new Set(battles.flatMap((b) => [b.player_character_id, b.opponent_character_id])),
+      ...new Set(battles.flatMap((b) => [b.player_character_id, b.opponent_character_id]).filter(Boolean)),
     ];
-    const { data: chars } = await supabaseAdmin
-      .from("characters")
-      .select("id, name, keywords")
-      .in("id", charIds);
+    const { data: chars } = charIds.length > 0
+      ? await supabaseAdmin.from("characters").select("id, name, keywords").in("id", charIds)
+      : { data: [] };
 
     const charMap = new Map((chars || []).map((c) => [c.id, c]));
 
@@ -40,9 +39,9 @@ export async function GET(request: NextRequest) {
       const opponentChar = charMap.get(b.opponent_character_id);
       return {
         id: b.id,
-        playerName: playerChar?.name || "未知",
+        playerName: playerChar?.name || "已删除角色",
         playerKeywords: playerChar?.keywords || "",
-        opponentName: opponentChar?.name || "未知",
+        opponentName: opponentChar?.name || "已删除角色",
         opponentKeywords: opponentChar?.keywords || "",
         winner: b.winner,
         totalRounds: b.total_rounds,

@@ -38,14 +38,22 @@ export async function GET() {
       .select("id, name")
       .in("id", playerIds);
 
-    const charIds = [...new Set(Object.values(stats).map((s) => s.characterId))];
-    const { data: chars } = await supabaseAdmin
+    // 查询每个玩家当前拥有的最新角色（不依赖对战记录中可能被置 NULL 的 character_id）
+    const { data: latestChars } = await supabaseAdmin
       .from("characters")
-      .select("id, name")
-      .in("id", charIds);
+      .select("id, name, user_id")
+      .in("user_id", playerIds)
+      .eq("is_system", false)
+      .order("created_at", { ascending: false });
 
     const userMap = new Map((users || []).map((u) => [u.id, u]));
-    const charMap = new Map((chars || []).map((c) => [c.id, c.name]));
+    // 每个用户取最新角色名
+    const userCharMap = new Map<string, string>();
+    for (const c of latestChars || []) {
+      if (!userCharMap.has(c.user_id)) {
+        userCharMap.set(c.user_id, c.name);
+      }
+    }
 
     // 排名：按胜率排序，胜场相同按总场次
     const rankings = playerIds
@@ -55,7 +63,7 @@ export async function GET() {
         return {
           userId: pid,
           userName: user ? user.name : "Unknown",
-          characterName: charMap.get(s.characterId) || "Unknown",
+          characterName: userCharMap.get(pid) || "—",
           wins: s.wins,
           losses: s.losses,
           draws: s.draws,
