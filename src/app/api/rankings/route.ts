@@ -47,11 +47,11 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     const userMap = new Map((users || []).map((u) => [u.id, u]));
-    // 每个用户取最新角色名
-    const userCharMap = new Map<string, string>();
+    // 每个用户取最新角色（id + name）
+    const userCharMap = new Map<string, { id: string; name: string }>();
     for (const c of latestChars || []) {
       if (!userCharMap.has(c.user_id)) {
-        userCharMap.set(c.user_id, c.name);
+        userCharMap.set(c.user_id, { id: c.id, name: c.name });
       }
     }
 
@@ -63,7 +63,8 @@ export async function GET() {
         return {
           userId: pid,
           userName: user ? user.name : "Unknown",
-          characterName: userCharMap.get(pid) || "—",
+          characterId: userCharMap.get(pid)?.id || null,
+          characterName: userCharMap.get(pid)?.name || "—",
           wins: s.wins,
           losses: s.losses,
           draws: s.draws,

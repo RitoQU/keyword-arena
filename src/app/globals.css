@@ -205,6 +205,15 @@
   animation: fadeIn 0.4s ease-out forwards;
 }
 
+/* 底部弹出 Modal */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
 /* ====== 二期：战斗场景动画 ====== */
 
 /* 角色待机呼吸 */
