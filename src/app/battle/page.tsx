@@ -448,7 +448,7 @@ export default function BattlePage() {
 
       {/* ═══ 结果展示 ═══ */}
       {battlePhase === "result" && battleResult && (
-        <div className="space-y-4 animate-fadeIn">
+        <div className="space-y-4 animate-fadeIn pb-28">
           <div
             className="pixel-card text-center"
             style={{
@@ -468,51 +468,6 @@ export default function BattlePage() {
             <p className="font-pixel-zh text-gray-300 text-sm">{summary}</p>
           </div>
 
-          {/* ━━ 核心操作按钮（紧跟胜负判定） ━━ */}
-          <div className="flex gap-4">
-            <button onClick={() => router.push("/game")} className="pixel-btn-secondary flex-1">
-              返回
-            </button>
-            <button
-              onClick={() => {
-                setBattlePhase("loading");
-                setVisibleActions(0);
-                setIntroStep(0);
-                setBattleResult(null);
-                setPlayerAnim("idle");
-                setOpponentAnim("idle");
-                setPlayerDmg(null);
-                setOpponentDmg(null);
-                setAnimKey(0);
-                const userData = sessionStorage.getItem("user");
-                const charData = sessionStorage.getItem("character");
-                if (userData && charData) {
-                  const user = JSON.parse(userData);
-                  const char = JSON.parse(charData);
-                  startBattle(user.id, char.id);
-                }
-              }}
-              className="pixel-btn-primary flex-1"
-            >
-              ⚔️ 再来一局
-            </button>
-          </div>
-
-          {/* 剩余对战提示 */}
-          {remainingBattles !== null && remainingBattles <= 5 && remainingBattles > 0 && (
-            <div className="pixel-card text-center" style={{ borderColor: "#ffd700" }}>
-              <p className="font-pixel-zh text-pixel-yellow text-sm">
-                ⚠️ 今日剩余 {remainingBattles} 场对战
-              </p>
-            </div>
-          )}
-          {remainingBattles !== null && remainingBattles <= 0 && (
-            <div className="pixel-card text-center" style={{ borderColor: "#ff4444" }}>
-              <p className="font-pixel-zh text-pixel-red text-sm">
-                今日对战次数已用完，明天再来吧！
-              </p>
-            </div>
-          )}
           <details className="group">
             <summary className="pixel-card cursor-pointer flex items-center justify-between list-none text-center">
               <span className="font-pixel-zh text-gray-400 text-xs">📊 对战统计</span>
@@ -539,6 +494,55 @@ export default function BattlePage() {
               </div>
             </div>
           </details>
+        </div>
+      )}
+
+      {/* ━━ 固定底部操作栏（结算后始终可见） ━━ */}
+      {battlePhase === "result" && battleResult && (
+        <div className="fixed bottom-0 left-0 right-0 z-30">
+          <div
+            className="max-w-2xl mx-auto px-4 pt-6 pb-5"
+            style={{ background: "linear-gradient(transparent, #0a0a0a 40%)" }}
+          >
+            {remainingBattles !== null && remainingBattles <= 5 && remainingBattles > 0 && (
+              <p className="font-pixel-zh text-pixel-yellow text-xs text-center mb-2">
+                ⚠️ 今日剩余 {remainingBattles} 场对战
+              </p>
+            )}
+            {remainingBattles !== null && remainingBattles <= 0 && (
+              <p className="font-pixel-zh text-pixel-red text-xs text-center mb-2">
+                今日对战次数已用完，明天再来吧！
+              </p>
+            )}
+            <div className="flex gap-4">
+              <button onClick={() => router.push("/game")} className="pixel-btn-secondary flex-1">
+                返回
+              </button>
+              <button
+                onClick={() => {
+                  setBattlePhase("loading");
+                  setVisibleActions(0);
+                  setIntroStep(0);
+                  setBattleResult(null);
+                  setPlayerAnim("idle");
+                  setOpponentAnim("idle");
+                  setPlayerDmg(null);
+                  setOpponentDmg(null);
+                  setAnimKey(0);
+                  const userData = sessionStorage.getItem("user");
+                  const charData = sessionStorage.getItem("character");
+                  if (userData && charData) {
+                    const user = JSON.parse(userData);
+                    const char = JSON.parse(charData);
+                    startBattle(user.id, char.id);
+                  }
+                }}
+                className="pixel-btn-primary flex-1"
+              >
+                ⚔️ 再来一局
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
