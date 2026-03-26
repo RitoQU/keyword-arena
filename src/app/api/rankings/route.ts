@@ -35,7 +35,7 @@ export async function GET() {
 
     const { data: users } = await supabaseAdmin
       .from("users")
-      .select("id, name, code")
+      .select("id, name")
       .in("id", playerIds);
 
     const charIds = [...new Set(Object.values(stats).map((s) => s.characterId))];
@@ -54,7 +54,7 @@ export async function GET() {
         const user = userMap.get(pid);
         return {
           userId: pid,
-          userName: user ? `${user.name} #${user.code}` : "Unknown",
+          userName: user ? user.name : "Unknown",
           characterName: charMap.get(s.characterId) || "Unknown",
           wins: s.wins,
           losses: s.losses,

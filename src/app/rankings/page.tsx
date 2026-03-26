@@ -51,7 +51,7 @@ export default function RankingsPage() {
     <div className="min-h-screen p-4 max-w-2xl mx-auto">
       <div className="text-center mb-6">
         <h1 className="font-pixel text-pixel-yellow text-lg">🏆 RANKINGS 🏆</h1>
-        <p className="font-pixel-zh text-gray-500 text-sm mt-2">胜场排行榜</p>
+        <p className="font-pixel-zh text-gray-500 text-sm mt-2">玩家累计战绩排行</p>
       </div>
 
       {loading ? (
@@ -69,7 +69,7 @@ export default function RankingsPage() {
           <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs">
             <span className="col-span-1 font-pixel text-gray-500">#</span>
             <span className="col-span-4 font-pixel-zh text-gray-500">玩家</span>
-            <span className="col-span-3 font-pixel-zh text-gray-500">角色</span>
+            <span className="col-span-3 font-pixel-zh text-gray-500">当前角色</span>
             <span className="col-span-2 font-pixel text-gray-500 text-right">W/L</span>
             <span className="col-span-2 font-pixel text-gray-500 text-right">WIN%</span>
           </div>
