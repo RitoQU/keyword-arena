@@ -157,30 +157,57 @@ function assessPowerTier(keywords: string[]): string {
   return "rare"; // 默认稀有级
 }
 
+// 等级属性范围
+const TIER_LIMITS: Record<string, { min: number; max: number }> = {
+  legendary: { min: 60, max: 95 },
+  epic: { min: 50, max: 85 },
+  rare: { min: 40, max: 75 },
+  common: { min: 30, max: 65 },
+  weak: { min: 18, max: 50 },
+};
+
+// 自动缩放属性到合法范围（等比缩放 + clamp 3-20）
+function normalizeStats(data: Record<string, unknown>, powerTier: string): void {
+  const stats = ["str", "dex", "con", "int_val", "wis", "cha"];
+  const limits = TIER_LIMITS[powerTier] || { min: 30, max: 80 };
+
+  // 先 clamp 单项到 3-20，并确保类型为数字
+  for (const stat of stats) {
+    const val = Number(data[stat]) || 10;
+    data[stat] = Math.max(3, Math.min(20, Math.round(val)));
+  }
+
+  let total = stats.reduce((s, k) => s + (data[k] as number), 0);
+
+  // 如果总和超出范围，等比缩放到范围中点
+  if (total < limits.min || total > limits.max) {
+    const target = Math.round((limits.min + limits.max) / 2);
+    const ratio = target / total;
+    for (const stat of stats) {
+      data[stat] = Math.max(3, Math.min(20, Math.round((data[stat] as number) * ratio)));
+    }
+    // 缩放后微调差值（rounding 可能导致偏移）
+    total = stats.reduce((s, k) => s + (data[k] as number), 0);
+    let diff = target - total;
+    // 逐个属性 +1/-1 直到总和准确命中 target
+    for (let i = 0; diff !== 0 && i < stats.length * 3; i++) {
+      const stat = stats[i % stats.length];
+      const val = data[stat] as number;
+      if (diff > 0 && val < 20) { data[stat] = val + 1; diff--; }
+      else if (diff < 0 && val > 3) { data[stat] = val - 1; diff++; }
+    }
+  }
+}
+
 // 校验生成的角色数据
 function validateCharacter(data: Record<string, unknown>, powerTier: string): string | null {
   const stats = ["str", "dex", "con", "int_val", "wis", "cha"];
-  let total = 0;
 
   for (const stat of stats) {
     const val = data[stat];
     if (typeof val !== "number" || val < 3 || val > 20) {
       return `属性 ${stat} 不合法: ${val}`;
     }
-    total += val as number;
-  }
-
-  // 根据等级校验范围
-  const tierLimits: Record<string, { min: number; max: number }> = {
-    legendary: { min: 60, max: 95 },
-    epic: { min: 50, max: 85 },
-    rare: { min: 40, max: 75 },
-    common: { min: 30, max: 65 },
-    weak: { min: 18, max: 50 },
-  };
-  const limits = tierLimits[powerTier] || { min: 30, max: 80 };
-  if (total < limits.min || total > limits.max) {
-    return `属性总和 ${total} 超出${powerTier}等级范围 (${limits.min}-${limits.max})`;
   }
 
   if (!data.name || typeof data.name !== "string") return "缺少名字";
@@ -308,6 +335,9 @@ export async function POST(request: NextRequest) {
         { status: 502 }
       );
     }
+
+    // 自动缩放属性到等级合法范围
+    normalizeStats(charData, powerTier);
 
     // 校验
     const validationError = validateCharacter(charData, powerTier);
