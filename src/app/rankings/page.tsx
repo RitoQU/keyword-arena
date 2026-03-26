@@ -73,6 +73,11 @@ export default function RankingsPage() {
 
   return (
     <div className="min-h-screen p-4 max-w-2xl mx-auto">
+      <div className="mb-4">
+        <button onClick={() => router.push("/game")} className="font-pixel-zh text-gray-500 text-sm hover:text-gray-300 transition-colors">
+          ← 返回
+        </button>
+      </div>
       <div className="text-center mb-6">
         <h1 className="font-pixel text-pixel-yellow text-lg">🏆 RANKINGS 🏆</h1>
         <p className="font-pixel-zh text-gray-500 text-sm mt-2">玩家累计战绩排行</p>
