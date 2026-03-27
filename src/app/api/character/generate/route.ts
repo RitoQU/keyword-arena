@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { checkKeywords } from "@/lib/keyword-filter";
 import { NextRequest, NextResponse } from "next/server";
 
 const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY!;
@@ -277,6 +278,12 @@ export async function POST(request: NextRequest) {
         .map((k: string) => k.trim())
         .filter((k: string) => k.length > 0 && k.length <= 5);
       keywordList.push(...parts.slice(0, 3));
+    }
+
+    // 敏感词检查
+    const filterError = checkKeywords(keywordList);
+    if (filterError) {
+      return NextResponse.json({ error: filterError }, { status: 400 });
     }
 
     // 评估关键词强度等级
