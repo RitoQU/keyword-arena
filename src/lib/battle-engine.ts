@@ -1,6 +1,20 @@
 import type { Character, BattleAction, BattleResult, Weapon, Skill, SpecialItem } from "./types";
 
 const MAX_ROUNDS = 10;
+/** HP 公式参数 */
+const HP_MULTIPLIER = 11;
+const HP_BASE = 40;
+/** 伤害上限：单次攻击最多造成目标最大 HP 的 35% */
+const DAMAGE_CAP_PCT = 0.35;
+/** 伤害波动幅度：±25% */
+const DAMAGE_VARIANCE = 0.25;
+/** 弱者增伤系数：属性总和差距越大，弱方伤害加成越高 */
+const UNDERDOG_MULTIPLIER = 3.5;
+
+/** 根据 CON 重算 max_hp（确保始终使用最新公式） */
+function calcMaxHp(char: Character): number {
+  return char.con * HP_MULTIPLIER + HP_BASE;
+}
 
 interface FighterState {
   char: Character;
@@ -8,6 +22,7 @@ interface FighterState {
   maxHp: number;
   side: "player" | "opponent";
   skillCooldowns: Map<number, number>; // skillIndex -> remainingCooldown
+  underdogBonus: number; // 弱者增伤倍数，>=1
 }
 
 /** 计算总防御力 */
@@ -64,6 +79,31 @@ function tryTriggerItem(char: Character): SpecialItem | null {
   return null;
 }
 
+/** 计算角色六维属性总和 */
+function getTotalStats(char: Character): number {
+  return char.str + char.dex + char.con + char.int_val + char.wis + char.cha;
+}
+
+/** 计算弱者增伤倍数：属性总和更低的一方获得伤害加成 */
+function calcUnderdogBonus(attacker: Character, defender: Character): number {
+  const ratio = getTotalStats(attacker) / getTotalStats(defender);
+  if (ratio >= 1) return 1;
+  return 1 + (1 - ratio) * UNDERDOG_MULTIPLIER;
+}
+
+/** 对伤害应用波动和上限 */
+function applyDamageModifiers(baseDamage: number, underdogBonus: number, defenderMaxHp: number): number {
+  let damage = baseDamage;
+  // 伤害波动 ±25%
+  const variance = 1 + (Math.random() * 2 - 1) * DAMAGE_VARIANCE;
+  damage = Math.round(damage * variance);
+  // 弱者增伤
+  damage = Math.round(damage * underdogBonus);
+  // 伤害上限
+  damage = Math.min(damage, Math.round(defenderMaxHp * DAMAGE_CAP_PCT));
+  return Math.max(1, damage);
+}
+
 /** 执行一次攻击行为 */
 function executeAttack(
   attacker: FighterState,
@@ -102,6 +142,7 @@ function executeAttack(
     const baseDmg = skill.skill.damage + attacker.char.int_val * 2.0 - defender.char.wis * 0.8;
     damage = Math.max(1, Math.round(baseDmg));
     if (isCrit) damage = Math.round(damage * 1.5);
+    damage = applyDamageModifiers(damage, attacker.underdogBonus, defender.maxHp);
     attacker.skillCooldowns.set(skill.index, skill.skill.cooldown);
     description = isCrit
       ? `${attacker.char.name} 释放「${skill.skill.name}」——暴击！造成 ${damage} 点伤害！${skill.skill.effect}`
@@ -115,6 +156,7 @@ function executeAttack(
     const baseDmg = (weapon ? weapon.attack : 5) + attacker.char.str * 1.5 - totalDef * 0.3 - defender.char.con * 0.5;
     damage = Math.max(1, Math.round(baseDmg));
     if (isCrit) damage = Math.round(damage * 1.5);
+    damage = applyDamageModifiers(damage, attacker.underdogBonus, defender.maxHp);
     description = isCrit
       ? `${attacker.char.name} 用${actionName}发动猛攻——暴击！造成 ${damage} 点伤害！`
       : `${attacker.char.name} 用${actionName}攻击 ${defender.char.name}，造成 ${damage} 点伤害。`;
@@ -147,7 +189,8 @@ function executeItemTrigger(
   item: SpecialItem,
   round: number
 ): BattleAction {
-  const damage = Math.round(item.power * (1 + owner.char.cha * 0.1));
+  const baseDamage = Math.round(item.power * (1 + owner.char.cha * 0.1));
+  const damage = applyDamageModifiers(baseDamage, owner.underdogBonus, target.maxHp);
   target.hp = Math.max(0, target.hp - damage);
 
   return {
@@ -202,20 +245,28 @@ function generateSummary(
 
 /** 主对战函数 */
 export function runBattle(player: Character, opponent: Character): BattleResult {
+  // 使用最新 HP 公式重算，覆盖 DB 中可能过时的 max_hp
+  const pHp = calcMaxHp(player);
+  const oHp = calcMaxHp(opponent);
+  player = { ...player, max_hp: pHp };
+  opponent = { ...opponent, max_hp: oHp };
+
   const playerState: FighterState = {
     char: player,
-    hp: player.max_hp,
-    maxHp: player.max_hp,
+    hp: pHp,
+    maxHp: pHp,
     side: "player",
     skillCooldowns: new Map(),
+    underdogBonus: calcUnderdogBonus(player, opponent),
   };
 
   const opponentState: FighterState = {
     char: opponent,
-    hp: opponent.max_hp,
-    maxHp: opponent.max_hp,
+    hp: oHp,
+    maxHp: oHp,
     side: "opponent",
     skillCooldowns: new Map(),
+    underdogBonus: calcUnderdogBonus(opponent, player),
   };
 
   const actions: BattleAction[] = [];

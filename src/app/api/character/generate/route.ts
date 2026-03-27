@@ -52,7 +52,7 @@ ${tierGuide[powerTier]}
 4. 武器最多3个，防具最多3个，技能最多3个，特殊物品最多3个
 5. 技能来源可以是科幻、修仙、漫画、电影等任何题材
 6. 特殊物品可以是任何东西，效果可以强可以弱甚至为0
-7. HP上限基于体质(CON)计算：HP = CON * 8 + 20
+7. HP上限基于体质(CON)计算：HP = CON * 11 + 40
 
 请严格按以下JSON格式返回（不要包含任何其他文字）：
 {
@@ -405,7 +405,7 @@ export async function POST(request: NextRequest) {
 
     // 计算 HP
     const con = charData.con as number;
-    const maxHp = con * 8 + 20;
+    const maxHp = con * 11 + 40;
 
     // 提取 visual 配置（清理无效值）
     const rawVisual = charData.visual as Record<string, string> | undefined;
