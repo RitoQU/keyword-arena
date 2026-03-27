@@ -290,7 +290,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${MINIMAX_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "MiniMax-M2.5",
+        model: "MiniMax-M2.7",
         messages: [
           {
             role: "system",
