@@ -65,7 +65,7 @@ export default async function Image() {
           >
             <span>🎲 输入关键词</span>
             <span>→</span>
-            <span>🤖 AI生成角色</span>
+            <span>🔨 锻造角色</span>
             <span>→</span>
             <span>⚔️ 回合制对战</span>
           </div>

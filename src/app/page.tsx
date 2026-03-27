@@ -152,7 +152,7 @@ export default function Home() {
             <div className="space-y-4 font-pixel-zh text-gray-300 text-sm leading-relaxed">
               <div>
                 <h3 className="text-pixel-green mb-1">🎲 创建角色</h3>
-                <p>输入 1-3 个关键词（用空格分隔），AI 会为你生成一个独一无二的游戏角色，拥有 D&D 风格的六维属性、武器、防具、技能和特殊物品。</p>
+                <p>输入 3 个关键词，系统会为你锻造一个独一无二的游戏角色，拥有 D&D 风格的六维属性、武器、防具、技能和特殊物品。</p>
               </div>
 
               <div>

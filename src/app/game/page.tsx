@@ -158,7 +158,7 @@ export default function GamePage() {
               🎲 创建角色
             </h2>
             <p className="font-pixel-zh text-gray-400 text-sm mb-2">
-              输入 3 个关键词，AI 为你生成专属角色。
+              输入 3 个关键词，锻造你的专属角色。
             </p>
             <p className="font-pixel-zh text-gray-500 text-xs mb-5">
               每个关键词最多5个字 · 三个都要填哦

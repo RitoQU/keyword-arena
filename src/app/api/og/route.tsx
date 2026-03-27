@@ -63,7 +63,7 @@ export async function GET(_request: NextRequest) {
           >
             <span>🎲 输入关键词</span>
             <span style={{ color: "#444" }}>→</span>
-            <span>🤖 AI生成角色</span>
+            <span>🔨 锻造角色</span>
             <span style={{ color: "#444" }}>→</span>
             <span>⚔️ 回合制对战</span>
           </div>
