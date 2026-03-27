@@ -315,10 +315,10 @@ export function runBattle(player: Character, opponent: Character): BattleResult 
   } else if (playerState.hp <= 0) {
     winner = "opponent";
   } else {
-    // 10 回合结束，比较剩余 HP 百分比
+    // 10 回合结束，比较剩余 HP 百分比（差距 < 2% 才算平手）
     const playerPct = playerState.hp / playerState.maxHp;
     const opponentPct = opponentState.hp / opponentState.maxHp;
-    if (Math.abs(playerPct - opponentPct) < 0.05) {
+    if (Math.abs(playerPct - opponentPct) < 0.02) {
       winner = "draw";
     } else {
       winner = playerPct > opponentPct ? "player" : "opponent";

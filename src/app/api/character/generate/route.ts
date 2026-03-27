@@ -190,8 +190,8 @@ function normalizeStats(data: Record<string, unknown>, powerTier: string): void 
     // 缩放后微调差值（rounding 可能导致偏移）
     total = stats.reduce((s, k) => s + (data[k] as number), 0);
     let diff = target - total;
-    // 逐个属性 +1/-1 直到总和准确命中 target
-    for (let i = 0; diff !== 0 && i < stats.length * 3; i++) {
+    // 逐个属性 +1/-1 直到总和准确命中 target（上限 100 次，保证收敛）
+    for (let i = 0; diff !== 0 && i < 100; i++) {
       const stat = stats[i % stats.length];
       const val = data[stat] as number;
       if (diff > 0 && val < 20) { data[stat] = val + 1; diff--; }
@@ -330,15 +330,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 解析 JSON（处理 M2.7 的 <think> 推理块和可能的 markdown 代码块包裹）
+    // 解析 JSON（处理 M2.7 的 <think> 推理块、markdown 代码块、前后缀文本）
     let charData: Record<string, unknown>;
     try {
-      const cleaned = content
+      let cleaned = content
         .replace(/<think>[\s\S]*?<\/think>/g, "")  // 移除推理过程
         .replace(/```json?\n?/g, "")
         .replace(/```/g, "")
         .trim();
-      charData = JSON.parse(cleaned);
+      // 尝试直接解析
+      try {
+        charData = JSON.parse(cleaned);
+      } catch {
+        // 回退：从响应中提取第一个 {...} JSON 对象
+        const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("No JSON object found");
+        charData = JSON.parse(jsonMatch[0]);
+      }
     } catch {
       console.error("JSON parse error, raw content:", content);
       return NextResponse.json(
