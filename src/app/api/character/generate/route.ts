@@ -323,11 +323,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 解析 JSON（处理可能的 markdown 代码块包裹）
+    // 解析 JSON（处理 M2.7 的 <think> 推理块和可能的 markdown 代码块包裹）
     let charData: Record<string, unknown>;
     try {
-      const jsonStr = content.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-      charData = JSON.parse(jsonStr);
+      const cleaned = content
+        .replace(/<think>[\s\S]*?<\/think>/g, "")  // 移除推理过程
+        .replace(/```json?\n?/g, "")
+        .replace(/```/g, "")
+        .trim();
+      charData = JSON.parse(cleaned);
     } catch {
       console.error("JSON parse error, raw content:", content);
       return NextResponse.json(
