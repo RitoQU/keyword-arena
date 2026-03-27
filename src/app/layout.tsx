@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AudioToggle } from "@/components/AudioToggle";
 
 export const metadata: Metadata = {
   title: "关键词竞技场 | Keyword Arena",
@@ -56,6 +57,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-gray-950 text-white min-h-screen font-pixel-zh">
+        <AudioToggle />
         {children}
       </body>
     </html>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAudio } from "@/hooks/useAudio";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -9,6 +10,10 @@ export default function LoginPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { playBgm, playSfx } = useAudio();
+
+  // BGM：登录页使用首页音乐
+  useEffect(() => { playBgm("home"); }, [playBgm]);
 
   const handleLogin = async () => {
     setError("");
@@ -116,7 +121,7 @@ export default function LoginPage() {
 
           {/* 登录按钮 */}
           <button
-            onClick={handleLogin}
+            onClick={() => { playSfx("click"); handleLogin(); }}
             disabled={loading}
             className="pixel-btn-primary w-full text-base disabled:opacity-50"
           >

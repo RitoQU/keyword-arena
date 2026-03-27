@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { User, Character } from "@/lib/types";
+import { useAudio } from "@/hooks/useAudio";
 
 const FLAVOR_TEXTS = [
   "正在翻阅命运之书...",
@@ -29,6 +30,10 @@ export default function GamePage() {
   const [flavorIdx, setFlavorIdx] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { playBgm, playSfx } = useAudio();
+
+  // BGM：锻造页神秘氛围
+  useEffect(() => { playBgm("forge"); }, [playBgm]);
 
   // 生成中的轮播文案 + 计时
   useEffect(() => {
@@ -208,7 +213,7 @@ export default function GamePage() {
             )}
 
             <button
-              onClick={handleGenerate}
+              onClick={() => { playSfx("click"); handleGenerate(); }}
               disabled={generating}
               className="pixel-btn-primary w-full text-base disabled:opacity-50"
             >
@@ -275,7 +280,7 @@ export default function GamePage() {
               </p>
             )}
             <button
-              onClick={() => router.push("/battle")}
+              onClick={() => { playSfx("click"); router.push("/battle"); }}
               className="pixel-btn-primary w-full text-lg mb-3 py-4"
             >
               ⚔️ 开始对战

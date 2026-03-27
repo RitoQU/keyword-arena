@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useAudio } from "@/hooks/useAudio";
 
 // 像素粒子类型
 interface Particle {
@@ -35,6 +36,10 @@ export default function Home() {
   const [showButtons, setShowButtons] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
+  const { playBgm } = useAudio();
+
+  // BGM：首页轻快 chiptune
+  useEffect(() => { playBgm("home"); }, [playBgm]);
 
   // 初始化粒子
   useEffect(() => {

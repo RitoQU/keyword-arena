@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { BattleResult, BattleAction } from "@/lib/types";
 import { PixelAvatar } from "@/components/PixelAvatar";
+import { useAudio } from "@/hooks/useAudio";
 
 // ─── 血条组件 ───
 function HpBar({ current, max, side }: { current: number; max: number; side: "left" | "right" }) {
@@ -130,6 +131,7 @@ export default function BattlePage() {
   const [remainingBattles, setRemainingBattles] = useState<number | null>(null);
   const [introStep, setIntroStep] = useState(0);
   const logRef = useRef<HTMLDivElement>(null);
+  const { playBgm, playSfx, stopBgm } = useAudio();
 
   // 动画状态
   const [playerAnim, setPlayerAnim] = useState<AnimState>("idle");
@@ -176,6 +178,17 @@ export default function BattlePage() {
     }
   }, []);
 
+  // BGM + 场景音效：根据 battlePhase 切换
+  useEffect(() => {
+    if (battlePhase === "intro") {
+      playSfx("intro");
+      playBgm("battle");
+    } else if (battlePhase === "result" && battleResult) {
+      stopBgm();
+      playSfx(battleResult.winner === "player" ? "victory" : "defeat");
+    }
+  }, [battlePhase, battleResult, playBgm, stopBgm, playSfx]);
+
   // 入场倒计时
   useEffect(() => {
     if (battlePhase !== "intro") return;
@@ -211,10 +224,15 @@ export default function BattlePage() {
     return () => clearTimeout(timer);
   }, [battlePhase, battleResult, visibleActions]);
 
-  // ─── 核心：每条战报触发动画 ───
+  // ─── 核心：每条战报触发动画 + 音效 ───
   useEffect(() => {
     if (visibleActions === 0 || !battleResult) return;
     const action = battleResult.rounds[visibleActions - 1];
+
+    // 攻击音效
+    if (action.actionType === "skill") playSfx("skill");
+    else if (action.actionType === "item_trigger") playSfx("item");
+    else playSfx("attack");
     const isPlayerAttacking = action.attacker === "player";
 
     // 1) 攻击者 → 攻击动画
@@ -229,7 +247,7 @@ export default function BattlePage() {
     }
     setAnimKey((k) => k + 1);
 
-    // 2) 300ms后 → 受击者动画 + 浮动伤害
+    // 2) 300ms后 → 受击者动画 + 浮动伤害 + 打击音效
     const hitTimer = setTimeout(() => {
       const defenderSide = isPlayerAttacking ? "opponent" : "player";
       const dmgData = {
@@ -240,6 +258,7 @@ export default function BattlePage() {
       };
 
       if (!action.isMiss) {
+        if (action.isCrit) playSfx("crit");
         if (defenderSide === "player") {
           setPlayerAnim("hit");
           setPlayerDmg(dmgData);
@@ -253,6 +272,7 @@ export default function BattlePage() {
           setTimeout(() => setScreenFlash(false), 300);
         }
       } else {
+        playSfx("miss");
         // MISS 也显示浮动文字
         if (defenderSide === "player") {
           setPlayerDmg(dmgData);
@@ -265,6 +285,7 @@ export default function BattlePage() {
     // 3) 800ms后 → 恢复待机/死亡判定
     const resetTimer = setTimeout(() => {
       const isDead = (hp: number) => hp <= 0;
+      if (isDead(action.playerHp) || isDead(action.opponentHp)) playSfx("death");
       setPlayerAnim(isDead(action.playerHp) ? "death" : "idle");
       setOpponentAnim(isDead(action.opponentHp) ? "death" : "idle");
       setPlayerDmg(null);
