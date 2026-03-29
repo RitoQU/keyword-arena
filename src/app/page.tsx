@@ -100,7 +100,7 @@ export default function Home() {
       {/* 标题区域 */}
       <div className="text-center z-10 flex flex-col items-center">
         {/* 英文标题 - 像素字体 */}
-        <h1 className="font-pixel text-pixel-green text-2xl sm:text-4xl md:text-5xl mb-4 tracking-wider w-64 sm:w-auto">
+        <h1 className="font-pixel text-pixel-green text-2xl sm:text-4xl md:text-5xl mb-4 tracking-wider">
           KEYWORD
           <br />
           <span className="text-pixel-yellow">ARENA</span>
