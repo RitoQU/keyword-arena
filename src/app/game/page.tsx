@@ -156,7 +156,7 @@ export default function GamePage() {
       <div className="z-10 w-full max-w-lg mx-auto">
         {/* 顶栏 */}
         <div className="flex justify-between items-center mb-6">
-          <div>
+          <div className="inline-flex items-center">
             <span className="font-pixel text-pixel-green text-xs">
               {user.name}
             </span>
@@ -297,23 +297,31 @@ export default function GamePage() {
             </div>
 
             {/* 连胜 + 首胜状态栏 */}
-            {streakData && (
-              <div className="pixel-card mb-3 text-center text-xs space-y-1">
-                {streakData.currentStreak > 0 && (
-                  <p className="font-pixel text-pixel-orange">
-                    🔥 连胜 ×{streakData.currentStreak}  ·  最高 ×{streakData.maxStreak}
+            <div className="pixel-card mb-3 text-center text-xs space-y-1">
+              {streakData ? (
+                <>
+                  {streakData.currentStreak > 0 && (
+                    <p className="font-pixel text-pixel-orange inline-flex items-center justify-center gap-1 w-full">
+                      <span>🔥</span>
+                      <span>连胜 ×{streakData.currentStreak}</span>
+                      <span className="mx-1">·</span>
+                      <span>最高 ×{streakData.maxStreak}</span>
+                    </p>
+                  )}
+                  {streakData.currentStreak === 0 && streakData.maxStreak > 0 && (
+                    <p className="font-pixel text-gray-500">
+                      最高连胜 ×{streakData.maxStreak}
+                    </p>
+                  )}
+                  <p className={`font-pixel-zh inline-flex items-center justify-center gap-1 w-full ${streakData.firstWinToday ? "text-gray-500" : "text-pixel-yellow"}`}>
+                    <span>{streakData.firstWinToday ? "✅" : "✨"}</span>
+                    <span>今日首胜：{streakData.firstWinToday ? "已完成" : "未完成"}</span>
                   </p>
-                )}
-                {streakData.currentStreak === 0 && streakData.maxStreak > 0 && (
-                  <p className="font-pixel text-gray-500">
-                    最高连胜 ×{streakData.maxStreak}
-                  </p>
-                )}
-                <p className={`font-pixel-zh ${streakData.firstWinToday ? "text-gray-500" : "text-pixel-yellow"}`}>
-                  {streakData.firstWinToday ? "✅ 今日首胜：已完成" : "✨ 今日首胜：未完成"}
-                </p>
-              </div>
-            )}
+                </>
+              ) : (
+                <p className="font-pixel text-gray-600 animate-pulse">· · ·</p>
+              )}
+            </div>
 
             {/* 核心操作区 — 始终在第一屏 */}
             {error && (

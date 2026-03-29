@@ -608,21 +608,34 @@ export default function BattlePage() {
 
             {/* 连胜 + 首胜提示 */}
             {streakInfo && streakInfo.milestone && winner === "player" && (
-              <p className="font-pixel-zh text-pixel-orange text-sm mt-2 animate-pulse">
-                {streakInfo.milestone === "streak_10" ? "👑 十连胜！你已超越凡人"
-                  : streakInfo.milestone === "streak_7" ? "🔥🔥🔥 七连胜！无人能敌"
-                  : streakInfo.milestone === "streak_5" ? "🔥🔥 五连胜！传说之路"
-                  : "🔥 三连胜！势不可挡"}
+              <p className="font-pixel-zh text-pixel-orange text-sm mt-2 animate-pulse inline-flex items-center justify-center gap-1 w-full">
+                <span>{streakInfo.milestone === "streak_10" ? "👑"
+                  : streakInfo.milestone === "streak_7" ? "🔥🔥🔥"
+                  : streakInfo.milestone === "streak_5" ? "🔥🔥"
+                  : "🔥"}</span>
+                <span>{streakInfo.milestone === "streak_10" ? "十连胜！你已超越凡人"
+                  : streakInfo.milestone === "streak_7" ? "七连胜！无人能敌"
+                  : streakInfo.milestone === "streak_5" ? "五连胜！传说之路"
+                  : "三连胜！势不可挡"}</span>
               </p>
             )}
             {streakInfo && !streakInfo.milestone && streakInfo.current > 0 && winner === "player" && (
-              <p className="font-pixel text-pixel-orange text-xs mt-2">🔥 连胜 ×{streakInfo.current}</p>
+              <p className="font-pixel text-pixel-orange text-xs mt-2 inline-flex items-center justify-center gap-1 w-full">
+                <span>🔥</span>
+                <span>连胜 ×{streakInfo.current}</span>
+              </p>
             )}
             {streakInfo && streakInfo.broken && winner !== "player" && (
-              <p className="font-pixel-zh text-gray-400 text-xs mt-2">💔 连胜终结于 ×{streakInfo.broken}</p>
+              <p className="font-pixel-zh text-gray-400 text-xs mt-2 inline-flex items-center justify-center gap-1 w-full">
+                <span>💔</span>
+                <span>连胜终结于 ×{streakInfo.broken}</span>
+              </p>
             )}
             {firstWinInfo?.isFirstToday && (
-              <p className="font-pixel-zh text-pixel-yellow text-xs mt-1">✨ 今日首胜达成！</p>
+              <p className="font-pixel-zh text-pixel-yellow text-xs mt-1 inline-flex items-center justify-center gap-1 w-full">
+                <span>✨</span>
+                <span>今日首胜达成！</span>
+              </p>
             )}
           </div>
 
