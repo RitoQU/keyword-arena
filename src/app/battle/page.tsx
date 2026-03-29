@@ -659,7 +659,8 @@ export default function BattlePage() {
       {showBossAchievement && bossProgress?.isFirstDefeat && bossProgress.rewardTitle && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-fadeIn">
           <div className="pixel-card text-center max-w-xs mx-4 border-2 border-pixel-yellow">
-            <p className="font-pixel text-pixel-yellow text-lg mb-3">🏆 BOSS DEFEATED!</p>
+            <p className="text-3xl mb-2">🏆</p>
+            <p className="font-pixel text-pixel-yellow text-lg mb-3">BOSS DEFEATED!</p>
             <p className="font-pixel-zh text-gray-300 text-sm mb-2">获得称号</p>
             <p className={`font-pixel text-base mb-4 ${
               bossProgress.tier === 5 ? "title-shimmer" :
@@ -698,7 +699,7 @@ export default function BattlePage() {
             )}
             <div className="flex gap-3">
               <button onClick={() => router.push(isBossBattle ? "/boss" : "/game")} className="pixel-btn-secondary flex-1">
-                {isBossBattle ? "返回BOSS" : "返回"}
+                返回
               </button>
               <button
                 onClick={async () => {
@@ -713,7 +714,7 @@ export default function BattlePage() {
                 }}
                 className="pixel-btn-secondary flex-1"
               >
-                {copySuccess ? "✅ 已复制" : "📋 分享"}
+                {copySuccess ? "✅ 战报已复制" : "📋 分享"}
               </button>
               {isBossBattle ? (
                 <button
