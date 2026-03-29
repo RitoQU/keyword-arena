@@ -28,22 +28,42 @@ function buildPrompt(keywords: string[], powerTier: string): string {
   const styleSeed = styleSeeds[Math.floor(Math.random() * styleSeeds.length)];
   const randomId = Math.random().toString(36).slice(2, 8);
 
+  // GPT Tier 判定步骤（仅在词表未命中时触发）
+  const tierAssessmentBlock = powerTier === "unknown" ? `
+⚠️ 第一步（必须完成）：判定关键词力量等级
+请根据这组关键词在现实世界、流行文化、神话传说中暗示的力量等级，判定 assessed_tier。判据：
+- legendary: 宇宙级/创世级/神话中的至高存在（如：创世神、宇宙毁灭者、全能者）
+- epic: 传说中的强大存在、超级英雄级、神话生物（如：龙、凤凰、魔王、超级英雄）
+- rare: 有一定力量/特色但非超凡的存在（如：骑士、忍者、火焰、剑客）— 这是默认等级
+- common: 日常生活中的普通事物（如：水果、文具、办公用品、家畜）
+- weak: 幼小/脆弱/微不足道的存在（如：蚂蚁、气泡、灰尘、纸片）
+请在返回的 JSON 中新增 "assessed_tier" 字段（值为上述五个之一）。
+
+` : "";
+
+  // 已知 tier 时的指令
+  const knownTierBlock = powerTier !== "unknown" ? `
+当前角色的强度等级：${powerTier.toUpperCase()}
+${tierGuide[powerTier]}
+` : `
+请严格基于你在第一步判定的 assessed_tier，参考以下对应的属性范围：
+${Object.entries(tierGuide).map(([k, v]) => `- ${k.toUpperCase()}: ${v}`).join("\n")}
+`;
+
   return `你是一个创意角色设计师。请根据以下关键词生成一个游戏角色。
 
 关键词：${keywordStr}
 创意种子：#${randomId}（请基于这个随机种子发挥创意，确保每次生成都不同）
 风格倾向：${styleSeed}
-
+${tierAssessmentBlock}
 ⚠️ 重要规则 — 关键词强度感知（最高权重规则）：
 角色的强度必须严格与关键词暗示的力量等级匹配。这是最重要的规则，不可违反。
 - 如果关键词暗示了传奇/神话级别的存在（如：超人、神、无限宝石、灭霸、宇宙、毁灭），角色应有极高的属性
 - 如果关键词暗示了普通/日常事物（如：橘子、普通人、铅笔、蜗牛），角色属性应偏低
 - 如果关键词暗示了弱小/幼小/无害的存在（如：婴儿、蚂蚁、肥皂泡、毛毛虫、纸飞机），角色属性必须非常低，大部分属性在3-7之间
 - 关键词的想象力和创意很重要，但不应让"婴儿"拥有和"战神"一样的属性
-- 请严格遵循上方「强度等级」给出的属性总点数范围，不要超出
-
-当前角色的强度等级：${powerTier.toUpperCase()}
-${tierGuide[powerTier]}
+- 请严格遵循下方属性范围指引，不要超出
+${knownTierBlock}
 
 具体要求：
 1. 角色可以是人、动物、机器人、怪兽、虚构角色等任何类型
@@ -155,7 +175,7 @@ function assessPowerTier(keywords: string[]): string {
   for (const p of commonPatterns) {
     if (combined.includes(p)) return "common";
   }
-  return "rare"; // 默认稀有级
+  return "unknown"; // 词表未命中，交给 GPT 判定
 }
 
 // 等级属性范围
@@ -287,7 +307,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 评估关键词强度等级
-    const powerTier = assessPowerTier(keywordList);
+    let powerTier = assessPowerTier(keywordList);
 
     // 调用 MiniMax API 生成角色
     const response = await fetch(`${MINIMAX_BASE_URL}/chat/completions`, {
@@ -353,6 +373,14 @@ export async function POST(request: NextRequest) {
         { error: "AI 生成的角色数据格式异常，请重试" },
         { status: 502 }
       );
+    }
+
+    // 如果是 GPT 判定 tier，从返回数据中提取
+    if (powerTier === "unknown") {
+      const assessedTier = (charData.assessed_tier as string)?.toLowerCase();
+      const validTiers = ["legendary", "epic", "rare", "common", "weak"];
+      powerTier = validTiers.includes(assessedTier) ? assessedTier : "rare";
+      delete charData.assessed_tier; // 清除，不写入数据库
     }
 
     // 自动缩放属性到等级合法范围

@@ -180,7 +180,8 @@ class AudioEngine {
 
   constructor() {
     if (typeof window !== "undefined") {
-      this._muted = localStorage.getItem("audio_muted") !== "false";
+      // 始终默认静音，避免浏览器 Autoplay Policy 导致图标与实际状态不一致
+      this._muted = true;
       this._bgmVolume = parseFloat(localStorage.getItem("audio_bgm_vol") || "0.3");
       this._sfxVolume = parseFloat(localStorage.getItem("audio_sfx_vol") || "0.5");
     }

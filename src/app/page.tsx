@@ -98,7 +98,7 @@ export default function Home() {
       </div>
 
       {/* 标题区域 */}
-      <div className="text-center z-10">
+      <div className="text-center z-10 flex flex-col items-center">
         {/* 英文标题 - 像素字体 */}
         <h1 className="font-pixel text-pixel-green text-2xl sm:text-4xl md:text-5xl mb-4 tracking-wider">
           KEYWORD
@@ -157,7 +157,7 @@ export default function Home() {
             <div className="space-y-4 font-pixel-zh text-gray-300 text-sm leading-relaxed">
               <div>
                 <h3 className="text-pixel-green mb-1">🎲 创建角色</h3>
-                <p>输入 3 个关键词，系统会为你锻造一个独一无二的游戏角色，拥有 D&D 风格的六维属性、武器、防具、技能和特殊物品。</p>
+                <p>输入 3 个关键词，AI 会为你锻造一个独一无二的游戏角色，拥有 D&D 风格的六维属性、武器、防具、技能和特殊物品。关键词决定角色的力量等级——越稀有、越强大的词汇，角色实力越强。</p>
               </div>
 
               <div>
@@ -171,12 +171,27 @@ export default function Home() {
               </div>
 
               <div>
+                <h3 className="text-pixel-green mb-1">🔥 连胜与首胜</h3>
+                <p>连续获胜会积累连胜徽章（🔥×N），展示你的实力。每天首次获胜会获得「首胜」标记，鼓励每日征战。</p>
+              </div>
+
+              <div>
+                <h3 className="text-pixel-green mb-1">👹 BOSS 挑战</h3>
+                <p>5 位强大的 BOSS 等待你的挑战，从 T1 守卫石像到 T5 虚空之眼，难度依次递增。击败 BOSS 将获得特殊荣耀！</p>
+              </div>
+
+              <div>
+                <h3 className="text-pixel-green mb-1">⚡ 战斗操控</h3>
+                <p>战斗中可以 2 倍速快进，战斗结束后可以用 emoji 一键分享战报给好友。</p>
+              </div>
+
+              <div>
                 <h3 className="text-pixel-green mb-1">💡 小贴士</h3>
                 <ul className="list-disc list-inside space-y-1 text-gray-400">
                   <li>关键词越有想象力，角色越有趣</li>
+                  <li>试试「龙」「混沌」「泰坦」等史诗关键词</li>
                   <li>每天可以生成 3 个角色、对战 50 场</li>
                   <li>不满意当前角色？删除后重新生成</li>
-                  <li>不同关键词会生成不同风格的角色</li>
                 </ul>
               </div>
 
@@ -204,7 +219,7 @@ export default function Home() {
       {/* 底部信息 (OPT-12) */}
       <div className="absolute bottom-3 z-10 text-center opacity-40">
         <p className="font-pixel text-gray-500" style={{ fontSize: '0.5rem' }}>
-          EARLY ACCESS v0.2.0
+          EARLY ACCESS v0.3.0
         </p>
         <p className="font-pixel-zh text-gray-500 mt-0.5" style={{ fontSize: '0.6rem' }}>
           Designed by Rito × Copilot
