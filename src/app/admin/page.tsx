@@ -121,11 +121,11 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen p-4 max-w-4xl mx-auto">
       {/* 标题 */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-pixel text-pixel-yellow text-sm">📊 ADMIN DASHBOARD</h1>
-        <button onClick={() => router.push("/")} className="pixel-btn-secondary text-xs py-1 px-3">
-          返回
+      <div className="mb-6">
+        <button onClick={() => router.push("/")} className="font-pixel-zh text-gray-500 text-sm hover:text-gray-300 mb-2">
+          ← 返回
         </button>
+        <h1 className="font-pixel text-pixel-yellow text-sm">📊 ADMIN DASHBOARD</h1>
       </div>
 
       {/* 概览卡片 */}

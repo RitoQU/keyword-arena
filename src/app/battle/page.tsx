@@ -445,10 +445,6 @@ export default function BattlePage() {
 
       {/* 对战标题 */}
       <div className="flex justify-between items-center mb-4">
-        <div className="w-10" />
-        <h1 className="font-pixel text-pixel-yellow text-lg">
-          {isBossBattle ? "👹 BOSS BATTLE 👹" : "⚔️ BATTLE ⚔️"}
-        </h1>
         {battlePhase === "fighting" ? (
           <button
             onClick={() => {
@@ -465,6 +461,10 @@ export default function BattlePage() {
         ) : (
           <div className="w-10" />
         )}
+        <h1 className="font-pixel text-pixel-yellow text-lg">
+          {isBossBattle ? "👹 BOSS BATTLE 👹" : "⚔️ BATTLE ⚔️"}
+        </h1>
+        <div className="w-10" />
       </div>
 
       {/* ═══ 战斗竞技场 ═══ */}

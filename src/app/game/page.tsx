@@ -155,7 +155,13 @@ export default function GamePage() {
 
       <div className="z-10 w-full max-w-lg mx-auto">
         {/* 顶栏 */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center mb-6 gap-3">
+          <button
+            onClick={handleLogout}
+            className="font-pixel-zh text-gray-500 text-sm hover:text-gray-300"
+          >
+            退出
+          </button>
           <div className="inline-flex items-center">
             <span className="font-pixel text-pixel-green text-xs">
               {user.name}
@@ -171,12 +177,6 @@ export default function GamePage() {
               </span>
             )}
           </div>
-          <button
-            onClick={handleLogout}
-            className="font-pixel-zh text-gray-500 text-sm hover:text-gray-300"
-          >
-            退出
-          </button>
         </div>
 
         {/* 无角色：生成角色 */}
