@@ -174,7 +174,7 @@ export default function Home() {
                 <h3 className="text-pixel-green mb-1">💡 小贴士</h3>
                 <ul className="list-disc list-inside space-y-1 text-gray-400">
                   <li>关键词越有想象力，角色越有趣</li>
-                  <li>每天可以生成 3 个角色、对战 20 场</li>
+                  <li>每天可以生成 3 个角色、对战 50 场</li>
                   <li>不满意当前角色？删除后重新生成</li>
                   <li>不同关键词会生成不同风格的角色</li>
                 </ul>

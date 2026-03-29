@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
       .eq("date", today)
       .single();
 
-    if (limit && limit.battles >= 100) {
+    if (limit && limit.battles >= 50) {
       return NextResponse.json(
-        { error: "今日对战次数已用完（100/100），请明天再来！" },
+        { error: "今日对战次数已用完（50/50），请明天再来！" },
         { status: 429 }
       );
     }
@@ -121,6 +121,58 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // ─── 连胜 + 首胜计算 ───
+    const { data: userData } = await supabaseAdmin
+      .from("users")
+      .select("current_streak, max_streak, last_first_win_date")
+      .eq("id", userId)
+      .single();
+
+    const prevStreak = userData?.current_streak ?? 0;
+    const prevMax = userData?.max_streak ?? 0;
+    const lastFirstWinDate = userData?.last_first_win_date;
+
+    let newStreak = prevStreak;
+    let newMax = prevMax;
+    let isFirstWinToday = false;
+    let streakBroken: number | null = null;
+    let streakMilestone: string | null = null;
+
+    if (battleResult.winner === "player") {
+      newStreak = prevStreak + 1;
+      newMax = Math.max(newStreak, prevMax);
+
+      // 首胜判定
+      if (lastFirstWinDate !== today) {
+        isFirstWinToday = true;
+      }
+
+      // 里程碑判定
+      if (newStreak >= 10) streakMilestone = "streak_10";
+      else if (newStreak >= 7) streakMilestone = "streak_7";
+      else if (newStreak >= 5) streakMilestone = "streak_5";
+      else if (newStreak >= 3) streakMilestone = "streak_3";
+
+      await supabaseAdmin
+        .from("users")
+        .update({
+          current_streak: newStreak,
+          max_streak: newMax,
+          ...(isFirstWinToday ? { last_first_win_date: today } : {}),
+        })
+        .eq("id", userId);
+    } else {
+      // 输或平 → 连胜归零
+      if (prevStreak >= 3) {
+        streakBroken = prevStreak;
+      }
+      newStreak = 0;
+      await supabaseAdmin
+        .from("users")
+        .update({ current_streak: 0 })
+        .eq("id", userId);
+    }
+
     return NextResponse.json({
       battleId: battle.id,
       result: {
@@ -129,7 +181,17 @@ export async function POST(request: NextRequest) {
         created_at: battle.created_at,
       },
       opponentCreator,
-      remainingBattles: 100 - ((limit?.battles || 0) + 1),
+      remainingBattles: 50 - ((limit?.battles || 0) + 1),
+      streak: {
+        current: newStreak,
+        max: newMax,
+        milestone: streakMilestone,
+        broken: streakBroken,
+      },
+      firstWin: {
+        isFirstToday: isFirstWinToday,
+        alreadyClaimed: lastFirstWinDate === today && !isFirstWinToday,
+      },
     });
   } catch (err) {
     console.error("Battle API error:", err);

@@ -33,6 +33,11 @@ export default function GamePage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { playBgm, playSfx } = useAudio();
 
+  // 连胜 + 首胜状态
+  const [streakData, setStreakData] = useState<{
+    currentStreak: number; maxStreak: number; firstWinToday: boolean; title: string | null;
+  } | null>(null);
+
   // BGM：锻造页神秘氛围
   useEffect(() => { playBgm("forge"); }, [playBgm]);
 
@@ -59,6 +64,13 @@ export default function GamePage() {
       return;
     }
     setUser(JSON.parse(userData));
+
+    // 获取连胜/首胜状态
+    const uid = JSON.parse(userData).id;
+    fetch(`/api/user/status?userId=${encodeURIComponent(uid)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setStreakData(d); })
+      .catch(() => {});
 
     const charData = sessionStorage.getItem("character");
     if (charData) {
@@ -148,6 +160,16 @@ export default function GamePage() {
             <span className="font-pixel text-pixel-green text-xs">
               {user.name}
             </span>
+            {streakData?.title && (
+              <span className={`font-pixel text-xs ml-2 ${
+                streakData.title === "虚空征服者" ? "title-shimmer" :
+                streakData.title === "驯兽者" ? "text-pixel-orange" :
+                streakData.title === "祛魔师" ? "text-pixel-blue" :
+                streakData.title === "破影人" ? "text-pixel-purple" : "text-gray-300"
+              }`}>
+                「{streakData.title}」
+              </span>
+            )}
           </div>
           <button
             onClick={handleLogout}
@@ -274,6 +296,25 @@ export default function GamePage() {
               </div>
             </div>
 
+            {/* 连胜 + 首胜状态栏 */}
+            {streakData && (
+              <div className="pixel-card mb-3 text-center text-xs space-y-1">
+                {streakData.currentStreak > 0 && (
+                  <p className="font-pixel text-pixel-orange">
+                    🔥 连胜 ×{streakData.currentStreak}  ·  最高 ×{streakData.maxStreak}
+                  </p>
+                )}
+                {streakData.currentStreak === 0 && streakData.maxStreak > 0 && (
+                  <p className="font-pixel text-gray-500">
+                    最高连胜 ×{streakData.maxStreak}
+                  </p>
+                )}
+                <p className={`font-pixel-zh ${streakData.firstWinToday ? "text-gray-500" : "text-pixel-yellow"}`}>
+                  {streakData.firstWinToday ? "✅ 今日首胜：已完成" : "✨ 今日首胜：未完成"}
+                </p>
+              </div>
+            )}
+
             {/* 核心操作区 — 始终在第一屏 */}
             {error && (
               <p className="font-pixel-zh text-pixel-red text-sm mb-3">
@@ -287,18 +328,24 @@ export default function GamePage() {
               ⚔️ 开始对战
             </button>
 
-            <div className="flex gap-3 mb-6">
+            <div className="grid grid-cols-3 gap-2 mb-6">
               <Link
                 href="/rankings"
-                className="pixel-btn-secondary flex-1 text-sm text-center"
+                className="pixel-btn-secondary text-sm text-center"
               >
                 🏆 排行榜
               </Link>
               <Link
-                href="/history"
-                className="pixel-btn-secondary flex-1 text-sm text-center"
+                href="/boss"
+                className="pixel-btn-secondary text-sm text-center"
               >
-                📜 历史记录
+                👹 BOSS
+              </Link>
+              <Link
+                href="/history"
+                className="pixel-btn-secondary text-sm text-center"
+              >
+                📜 历史
               </Link>
             </div>
 

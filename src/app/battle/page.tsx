@@ -133,6 +133,14 @@ export default function BattlePage() {
   const logRef = useRef<HTMLDivElement>(null);
   const { playBgm, playSfx, stopBgm } = useAudio();
 
+  // 连胜 + 首胜
+  const [streakInfo, setStreakInfo] = useState<{
+    current: number; max: number; milestone: string | null; broken: number | null;
+  } | null>(null);
+  const [firstWinInfo, setFirstWinInfo] = useState<{
+    isFirstToday: boolean; alreadyClaimed: boolean;
+  } | null>(null);
+
   // 动画状态
   const [playerAnim, setPlayerAnim] = useState<AnimState>("idle");
   const [opponentAnim, setOpponentAnim] = useState<AnimState>("idle");
@@ -141,8 +149,61 @@ export default function BattlePage() {
   const [opponentDmg, setOpponentDmg] = useState<{ value: number; isCrit: boolean; isMiss: boolean; key: number } | null>(null);
   const [screenFlash, setScreenFlash] = useState(false);
 
+  // 快进控制
+  const speedRef = useRef(1);
+  const [speedDisplay, setSpeedDisplay] = useState(1);
+
+  // BOSS 战标记
+  const [isBossBattle, setIsBossBattle] = useState(false);
+  const [bossProgress, setBossProgress] = useState<{
+    tier: number; defeated: boolean; isFirstDefeat: boolean; rewardTitle: string | null;
+  } | null>(null);
+  const [showBossAchievement, setShowBossAchievement] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // 生成 emoji 分享文本
+  const generateShareText = useCallback(() => {
+    if (!battleResult) return "";
+    const { player, opponent, rounds, winner } = battleResult;
+    const resultEmoji = winner === "player" ? "🏆" : winner === "opponent" ? "💀" : "🤝";
+    const lines: string[] = [];
+    lines.push(`${resultEmoji} ${player.name} vs ${opponent.name}`);
+    // 每回合一行 emoji
+    for (const r of rounds) {
+      const isP = r.attacker === "player";
+      const icon = r.isMiss ? "💨" : r.isCrit ? "💥" : r.actionType === "skill" ? "✨" : r.actionType === "item_trigger" ? "🎯" : "⚔️";
+      const bar = (hp: number, max: number) => {
+        const filled = Math.round((hp / max) * 5);
+        return "🟩".repeat(filled) + "⬛".repeat(5 - filled);
+      };
+      if (isP) {
+        lines.push(`${icon} → ${bar(r.opponentHp, r.opponentMaxHp)}`);
+      } else {
+        lines.push(`${bar(r.playerHp, r.playerMaxHp)} ← ${icon}`);
+      }
+    }
+    lines.push("");
+    lines.push("⚔️ Keyword Arena");
+    return lines.join("\n");
+  }, [battleResult]);
+
   // 初始化：开始对战
   useEffect(() => {
+    // 检查是否为 BOSS 战（由 BOSS 页面预加载结果）
+    const bossData = sessionStorage.getItem("bossChallenge");
+    const preloadedResult = sessionStorage.getItem("battleResult");
+
+    if (bossData && preloadedResult) {
+      setIsBossBattle(true);
+      const parsed = JSON.parse(preloadedResult);
+      setBattleResult(parsed.result);
+      setBossProgress(parsed.bossProgress || null);
+      sessionStorage.removeItem("bossChallenge");
+      sessionStorage.removeItem("battleResult");
+      setBattlePhase("intro");
+      return;
+    }
+
     const userData = sessionStorage.getItem("user");
     const charData = sessionStorage.getItem("character");
     if (userData && charData) {
@@ -171,12 +232,21 @@ export default function BattlePage() {
       setBattleResult(data.result);
       setOpponentCreator(data.opponentCreator || null);
       setRemainingBattles(data.remainingBattles ?? null);
+      setStreakInfo(data.streak || null);
+      setFirstWinInfo(data.firstWin || null);
       setBattlePhase("intro");
     } catch {
       setError("网络错误，请重试");
       setBattlePhase("result");
     }
   }, []);
+
+  // BOSS 成就弹窗：结算后自动弹出
+  useEffect(() => {
+    if (battlePhase === "result" && isBossBattle && bossProgress?.isFirstDefeat) {
+      setShowBossAchievement(true);
+    }
+  }, [battlePhase, isBossBattle, bossProgress]);
 
   // BGM + 场景音效：根据 battlePhase 切换
   useEffect(() => {
@@ -192,11 +262,12 @@ export default function BattlePage() {
   // 入场倒计时
   useEffect(() => {
     if (battlePhase !== "intro") return;
+    const s = speedRef.current;
     const steps = [
-      { delay: 800, step: 1 },
-      { delay: 1600, step: 2 },
-      { delay: 2400, step: 3 },
-      { delay: 3200, step: 4 },
+      { delay: 800 / s, step: 1 },
+      { delay: 1600 / s, step: 2 },
+      { delay: 2400 / s, step: 3 },
+      { delay: 3200 / s, step: 4 },
     ];
     const timers = steps.map(({ delay, step }) =>
       setTimeout(() => {
@@ -211,10 +282,10 @@ export default function BattlePage() {
   useEffect(() => {
     if (battlePhase !== "fighting" || !battleResult) return;
     if (visibleActions >= battleResult.rounds.length) {
-      const timer = setTimeout(() => setBattlePhase("result"), 1500);
+      const timer = setTimeout(() => setBattlePhase("result"), 1500 / speedRef.current);
       return () => clearTimeout(timer);
     }
-    const delay = visibleActions === 0 ? 1500 : 1200;
+    const delay = (visibleActions === 0 ? 1500 : 1200) / speedRef.current;
     const timer = setTimeout(() => {
       setVisibleActions((v) => v + 1);
       if (logRef.current) {
@@ -269,7 +340,7 @@ export default function BattlePage() {
         // 暴击屏幕闪烁
         if (action.isCrit) {
           setScreenFlash(true);
-          setTimeout(() => setScreenFlash(false), 300);
+          setTimeout(() => setScreenFlash(false), 300 / speedRef.current);
         }
       } else {
         playSfx("miss");
@@ -280,7 +351,7 @@ export default function BattlePage() {
           setOpponentDmg(dmgData);
         }
       }
-    }, 300);
+    }, 300 / speedRef.current);
 
     // 3) 800ms后 → 恢复待机/死亡判定
     const resetTimer = setTimeout(() => {
@@ -290,7 +361,7 @@ export default function BattlePage() {
       setOpponentAnim(isDead(action.opponentHp) ? "death" : "idle");
       setPlayerDmg(null);
       setOpponentDmg(null);
-    }, 900);
+    }, 900 / speedRef.current);
 
     return () => {
       clearTimeout(hitTimer);
@@ -349,8 +420,27 @@ export default function BattlePage() {
       )}
 
       {/* 对战标题 */}
-      <div className="text-center mb-4">
-        <h1 className="font-pixel text-pixel-yellow text-lg">⚔️ BATTLE ⚔️</h1>
+      <div className="flex justify-between items-center mb-4">
+        <div className="w-10" />
+        <h1 className="font-pixel text-pixel-yellow text-lg">
+          {isBossBattle ? "👹 BOSS BATTLE 👹" : "⚔️ BATTLE ⚔️"}
+        </h1>
+        {battlePhase === "fighting" ? (
+          <button
+            onClick={() => {
+              const next = speedRef.current === 1 ? 2 : 1;
+              speedRef.current = next;
+              setSpeedDisplay(next);
+            }}
+            className={`font-pixel text-xs border px-2 py-1 w-10 text-center ${
+              speedDisplay === 2 ? "text-pixel-yellow border-pixel-yellow" : "text-gray-500 border-gray-600"
+            }`}
+          >
+            {speedDisplay}×
+          </button>
+        ) : (
+          <div className="w-10" />
+        )}
       </div>
 
       {/* ═══ 战斗竞技场 ═══ */}
@@ -427,7 +517,7 @@ export default function BattlePage() {
         <div className="grid grid-cols-2 gap-4 px-4 pb-3">
           {/* 玩家信息 */}
           <div>
-            <p className="font-pixel text-pixel-green text-xs mb-1 truncate">{player.name}</p>
+            <p className="font-pixel text-pixel-green text-xs sm:text-sm mb-1 truncate">{player.name}</p>
             <HpBar current={playerHp} max={player.max_hp} side="left" />
             <p className="font-pixel-zh text-gray-500 text-xs mt-1 truncate">
               {player.keywords?.replace(/、/g, " · ")}
@@ -435,13 +525,41 @@ export default function BattlePage() {
           </div>
           {/* 对手信息 */}
           <div className="text-right">
-            <p className="font-pixel text-red-400 text-xs mb-1 truncate">{opponent.name}</p>
+            <p className="font-pixel text-red-400 text-xs sm:text-sm mb-1 truncate">{opponent.name}</p>
             <HpBar current={opponentHp} max={opponent.max_hp} side="right" />
             <p className="font-pixel-zh text-gray-500 text-xs mt-1 truncate">
               {opponent.keywords?.replace(/、/g, " · ")}
             </p>
           </div>
         </div>
+
+        {/* 当前动作提示（叙事层） */}
+        {battlePhase === "fighting" && currentAction && (
+          <div className="text-center px-4 py-1.5">
+            <p className={`font-pixel-zh transition-opacity duration-300 ${
+              currentAction.isCrit
+                ? "text-pixel-yellow text-base font-bold"
+                : currentAction.isMiss
+                ? "text-gray-500 text-sm"
+                : currentAction.actionType === "skill"
+                ? "text-pixel-blue text-sm"
+                : currentAction.actionType === "item_trigger"
+                ? "text-pixel-green text-sm"
+                : "text-gray-300 text-sm"
+            }`}>
+              {currentAction.isMiss
+                ? `❌ ${currentAction.attackerName} MISS`
+                : currentAction.isCrit
+                ? `💥 ${currentAction.actionName} → ${currentAction.damage}`
+                : currentAction.actionType === "skill"
+                ? `✨ ${currentAction.actionName} → ${currentAction.damage}`
+                : currentAction.actionType === "item_trigger"
+                ? `🎁 ${currentAction.actionName} → ${currentAction.damage}`
+                : `⚔️ ${currentAction.attackerName} → ${currentAction.damage}`
+              }
+            </p>
+          </div>
+        )}
 
         {/* 创建者信息 */}
         <div className="grid grid-cols-2 gap-4 px-4 pb-2">
@@ -487,6 +605,25 @@ export default function BattlePage() {
               {winner === "player" ? "🏆 VICTORY!" : winner === "opponent" ? "💀 DEFEAT" : "🤝 DRAW"}
             </p>
             <p className="font-pixel-zh text-gray-300 text-sm">{summary}</p>
+
+            {/* 连胜 + 首胜提示 */}
+            {streakInfo && streakInfo.milestone && winner === "player" && (
+              <p className="font-pixel-zh text-pixel-orange text-sm mt-2 animate-pulse">
+                {streakInfo.milestone === "streak_10" ? "👑 十连胜！你已超越凡人"
+                  : streakInfo.milestone === "streak_7" ? "🔥🔥🔥 七连胜！无人能敌"
+                  : streakInfo.milestone === "streak_5" ? "🔥🔥 五连胜！传说之路"
+                  : "🔥 三连胜！势不可挡"}
+              </p>
+            )}
+            {streakInfo && !streakInfo.milestone && streakInfo.current > 0 && winner === "player" && (
+              <p className="font-pixel text-pixel-orange text-xs mt-2">🔥 连胜 ×{streakInfo.current}</p>
+            )}
+            {streakInfo && streakInfo.broken && winner !== "player" && (
+              <p className="font-pixel-zh text-gray-400 text-xs mt-2">💔 连胜终结于 ×{streakInfo.broken}</p>
+            )}
+            {firstWinInfo?.isFirstToday && (
+              <p className="font-pixel-zh text-pixel-yellow text-xs mt-1">✨ 今日首胜达成！</p>
+            )}
           </div>
 
           <details className="group">
@@ -518,6 +655,30 @@ export default function BattlePage() {
         </div>
       )}
 
+      {/* ━━ BOSS 成就弹窗 ━━ */}
+      {showBossAchievement && bossProgress?.isFirstDefeat && bossProgress.rewardTitle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-fadeIn">
+          <div className="pixel-card text-center max-w-xs mx-4 border-2 border-pixel-yellow">
+            <p className="font-pixel text-pixel-yellow text-lg mb-3">🏆 BOSS DEFEATED!</p>
+            <p className="font-pixel-zh text-gray-300 text-sm mb-2">获得称号</p>
+            <p className={`font-pixel text-base mb-4 ${
+              bossProgress.tier === 5 ? "title-shimmer" :
+              bossProgress.tier === 4 ? "text-pixel-orange" :
+              bossProgress.tier === 3 ? "text-pixel-blue" :
+              bossProgress.tier === 2 ? "text-pixel-purple" : "text-gray-300"
+            }`}>
+              「{bossProgress.rewardTitle}」
+            </p>
+            <button
+              onClick={() => setShowBossAchievement(false)}
+              className="pixel-btn-primary text-sm px-6"
+            >
+              确认
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ━━ 固定底部操作栏（结算后始终可见） ━━ */}
       {battlePhase === "result" && battleResult && (
         <div className="fixed bottom-0 left-0 right-0 z-30">
@@ -525,43 +686,72 @@ export default function BattlePage() {
             className="max-w-2xl mx-auto px-4 pt-6 pb-5"
             style={{ background: "linear-gradient(transparent, #0a0a0a 40%)" }}
           >
-            {remainingBattles !== null && remainingBattles <= 5 && remainingBattles > 0 && (
+            {!isBossBattle && remainingBattles !== null && remainingBattles <= 5 && remainingBattles > 0 && (
               <p className="font-pixel-zh text-pixel-yellow text-xs text-center mb-2">
                 ⚠️ 今日剩余 {remainingBattles} 场对战
               </p>
             )}
-            {remainingBattles !== null && remainingBattles <= 0 && (
+            {!isBossBattle && remainingBattles !== null && remainingBattles <= 0 && (
               <p className="font-pixel-zh text-pixel-red text-xs text-center mb-2">
                 今日对战次数已用完，明天再来吧！
               </p>
             )}
-            <div className="flex gap-4">
-              <button onClick={() => router.push("/game")} className="pixel-btn-secondary flex-1">
-                返回
+            <div className="flex gap-3">
+              <button onClick={() => router.push(isBossBattle ? "/boss" : "/game")} className="pixel-btn-secondary flex-1">
+                {isBossBattle ? "返回BOSS" : "返回"}
               </button>
               <button
-                onClick={() => {
-                  setBattlePhase("loading");
-                  setVisibleActions(0);
-                  setIntroStep(0);
-                  setBattleResult(null);
-                  setPlayerAnim("idle");
-                  setOpponentAnim("idle");
-                  setPlayerDmg(null);
-                  setOpponentDmg(null);
-                  setAnimKey(0);
-                  const userData = sessionStorage.getItem("user");
-                  const charData = sessionStorage.getItem("character");
-                  if (userData && charData) {
-                    const user = JSON.parse(userData);
-                    const char = JSON.parse(charData);
-                    startBattle(user.id, char.id);
+                onClick={async () => {
+                  const text = generateShareText();
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    setCopySuccess(true);
+                    setTimeout(() => setCopySuccess(false), 2000);
+                  } catch {
+                    // fallback: 不支持 clipboard API 时静默失败
                   }
                 }}
-                className="pixel-btn-primary flex-1"
+                className="pixel-btn-secondary flex-1"
               >
-                ⚔️ 再来一局
+                {copySuccess ? "✅ 已复制" : "📋 分享"}
               </button>
+              {isBossBattle ? (
+                <button
+                  onClick={() => {
+                    // BOSS 再次挑战：回到 BOSS 页面重新选择
+                    router.push("/boss");
+                  }}
+                  className="pixel-btn-primary flex-1"
+                >
+                  👹 再次挑战
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setBattlePhase("loading");
+                    setVisibleActions(0);
+                    setIntroStep(0);
+                    setBattleResult(null);
+                    setPlayerAnim("idle");
+                    setOpponentAnim("idle");
+                    setPlayerDmg(null);
+                    setOpponentDmg(null);
+                    setAnimKey(0);
+                    setStreakInfo(null);
+                    setFirstWinInfo(null);
+                    const userData = sessionStorage.getItem("user");
+                    const charData = sessionStorage.getItem("character");
+                    if (userData && charData) {
+                      const user = JSON.parse(userData);
+                      const char = JSON.parse(charData);
+                      startBattle(user.id, char.id);
+                    }
+                  }}
+                  className="pixel-btn-primary flex-1"
+                >
+                  ⚔️ 再来一局
+                </button>
+              )}
             </div>
           </div>
         </div>

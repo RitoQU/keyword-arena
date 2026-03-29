@@ -339,3 +339,17 @@
 .animate-screen-flash {
   animation: screen-flash 0.3s ease-out forwards;
 }
+
+/* BOSS 5 虚空征服者 称号闪光 */
+@keyframes title-shimmer-anim {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.title-shimmer {
+  background: linear-gradient(90deg, #ffd700 0%, #ff8c00 25%, #ffd700 50%, #fff 75%, #ffd700 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: title-shimmer-anim 3s linear infinite;
+}
