@@ -620,15 +620,17 @@ export default function BattlePage() {
               </p>
             )}
             {streakInfo && !streakInfo.milestone && streakInfo.current > 0 && winner === "player" && (
-              <p className="font-pixel text-pixel-orange text-xs mt-2 inline-flex items-center justify-center gap-1 w-full">
+              <p className="text-pixel-orange text-xs mt-2 inline-flex items-center justify-center gap-1 w-full">
                 <span>🔥</span>
-                <span>连胜 ×{streakInfo.current}</span>
+                <span className="font-pixel-zh">连胜</span>
+                <span className="font-pixel">×{streakInfo.current}</span>
               </p>
             )}
             {streakInfo && streakInfo.broken && winner !== "player" && (
-              <p className="font-pixel-zh text-gray-400 text-xs mt-2 inline-flex items-center justify-center gap-1 w-full">
+              <p className="text-gray-400 text-xs mt-2 inline-flex items-center justify-center gap-1 w-full">
                 <span>💔</span>
-                <span>连胜终结于 ×{streakInfo.broken}</span>
+                <span className="font-pixel-zh">连胜终结于</span>
+                <span className="font-pixel">×{streakInfo.broken}</span>
               </p>
             )}
             {firstWinInfo?.isFirstToday && (

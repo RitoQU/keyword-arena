@@ -301,11 +301,13 @@ export default function GamePage() {
               {streakData ? (
                 <>
                   {streakData.currentStreak > 0 && (
-                    <p className="font-pixel text-pixel-orange inline-flex items-center justify-center gap-1 w-full">
+                    <p className="text-pixel-orange inline-flex items-center justify-center gap-1 w-full">
                       <span>🔥</span>
-                      <span>连胜 ×{streakData.currentStreak}</span>
-                      <span className="mx-1">·</span>
-                      <span>最高 ×{streakData.maxStreak}</span>
+                      <span className="font-pixel-zh">连胜</span>
+                      <span className="font-pixel">×{streakData.currentStreak}</span>
+                      <span className="font-pixel mx-1">·</span>
+                      <span className="font-pixel-zh">最高</span>
+                      <span className="font-pixel">×{streakData.maxStreak}</span>
                     </p>
                   )}
                   {streakData.currentStreak === 0 && streakData.maxStreak > 0 && (
