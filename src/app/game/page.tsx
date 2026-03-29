@@ -156,6 +156,12 @@ export default function GamePage() {
       <div className="z-10 w-full max-w-lg mx-auto">
         {/* 顶栏 */}
         <div className="mb-6 space-y-1">
+          <button
+            onClick={handleLogout}
+            className="font-pixel-zh text-gray-500 text-sm hover:text-gray-300"
+          >
+            ← 退出
+          </button>
           <span className="font-pixel text-pixel-green text-xs block truncate max-w-[200px]">
             {user.name}
           </span>
@@ -169,12 +175,6 @@ export default function GamePage() {
               「{streakData.title}」
             </span>
           )}
-          <button
-            onClick={handleLogout}
-            className="font-pixel-zh text-gray-500 text-xs hover:text-gray-300"
-          >
-            ← 退出
-          </button>
         </div>
 
         {/* 无角色：生成角色 */}
