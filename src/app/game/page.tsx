@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { User, Character } from "@/lib/types";
 import { useAudio } from "@/hooks/useAudio";
 
@@ -287,18 +288,18 @@ export default function GamePage() {
             </button>
 
             <div className="flex gap-3 mb-6">
-              <button
-                onClick={() => router.push("/rankings")}
-                className="pixel-btn-secondary flex-1 text-sm"
+              <Link
+                href="/rankings"
+                className="pixel-btn-secondary flex-1 text-sm text-center"
               >
                 🏆 排行榜
-              </button>
-              <button
-                onClick={() => router.push("/history")}
-                className="pixel-btn-secondary flex-1 text-sm"
+              </Link>
+              <Link
+                href="/history"
+                className="pixel-btn-secondary flex-1 text-sm text-center"
               >
                 📜 历史记录
-              </button>
+              </Link>
             </div>
 
             {/* 装备与技能详情 — 可折叠区域 */}

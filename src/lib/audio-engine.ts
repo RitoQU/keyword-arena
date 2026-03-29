@@ -1,195 +1,178 @@
 /**
- * 8-bit 像素风格音频引擎
- * 使用 Web Audio API 程序化生成 chiptune 音效和 BGM
- * 零外部依赖，零音频文件
+ * 8-bit 像素风格音频引擎 v2
+ * BGM: 外部 CC0 音频文件（HTMLAudioElement 循环播放）
+ * SFX: 程序化 Web Audio API，每类 2-3 个变体随机播放
+ *
+ * BGM 来源（均为 CC0）：
+ * - home.ogg: "Flowerbed Fields" by Zane Little Music (OpenGameArt)
+ * - forge.mp3: "[Chiptune] Medieval: The Old Tower Inn" by RandomMind (OpenGameArt)
+ * - battle.ogg: "8-Bit Battle Loop" by Wolfgang_ (OpenGameArt)
  */
 
-// ─── 音符频率表（C3-C6）───
-const NOTE: Record<string, number> = {
-  C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
-  C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
-  C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77,
-  C6: 1046.50,
+// ─── BGM 文件映射 ───
+const BGM_FILES: Record<string, string> = {
+  home: "/audio/home.ogg",
+  forge: "/audio/forge.mp3",
+  battle: "/audio/battle.ogg",
 };
 
-// ─── 类型定义 ───
-type WaveType = "square" | "sawtooth" | "triangle";
+// ─── SFX 类型 ───
+type SfxName =
+  | "attack" | "crit" | "miss" | "skill" | "item"
+  | "victory" | "defeat" | "click" | "intro" | "death"
+  | "chime";
 
 interface NoteEvent {
   freq: number;
-  duration: number; // 秒
-  wave?: WaveType;
-  volume?: number;  // 0-1
+  duration: number;
+  wave?: OscillatorType;
+  volume?: number;
 }
 
-interface BgmPattern {
-  bpm: number;
-  melody: NoteEvent[];
-  bass?: NoteEvent[];
-}
-
-// ─── BGM 曲谱定义 ───
-const BGM_PATTERNS: Record<string, BgmPattern> = {
-  // 首页/登录：轻快 chiptune
-  home: {
-    bpm: 120,
-    melody: [
-      { freq: NOTE.E4, duration: 0.25 }, { freq: NOTE.G4, duration: 0.25 },
-      { freq: NOTE.A4, duration: 0.25 }, { freq: NOTE.B4, duration: 0.25 },
-      { freq: NOTE.A4, duration: 0.25 }, { freq: NOTE.G4, duration: 0.25 },
-      { freq: NOTE.E4, duration: 0.5 },
-      { freq: NOTE.D4, duration: 0.25 }, { freq: NOTE.E4, duration: 0.25 },
-      { freq: NOTE.G4, duration: 0.25 }, { freq: NOTE.A4, duration: 0.25 },
-      { freq: NOTE.G4, duration: 0.25 }, { freq: NOTE.E4, duration: 0.25 },
-      { freq: NOTE.D4, duration: 0.5 },
-      { freq: NOTE.C4, duration: 0.25 }, { freq: NOTE.D4, duration: 0.25 },
-      { freq: NOTE.E4, duration: 0.5 },
-      { freq: NOTE.G4, duration: 0.25 }, { freq: NOTE.A4, duration: 0.25 },
-      { freq: NOTE.G4, duration: 0.5 },
-    ],
-    bass: [
-      { freq: NOTE.C3, duration: 0.5, wave: "triangle" }, { freq: NOTE.C3, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.G3, duration: 0.5, wave: "triangle" }, { freq: NOTE.G3, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.A3, duration: 0.5, wave: "triangle" }, { freq: NOTE.A3, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.G3, duration: 1.0, wave: "triangle" },
-      { freq: NOTE.F3, duration: 0.5, wave: "triangle" }, { freq: NOTE.F3, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.C3, duration: 0.5, wave: "triangle" }, { freq: NOTE.C3, duration: 0.5, wave: "triangle" },
-    ],
-  },
-
-  // 角色锻造：神秘氛围
-  forge: {
-    bpm: 80,
-    melody: [
-      { freq: NOTE.E4, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.G4, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.B4, duration: 0.75, wave: "triangle" },
-      { freq: NOTE.A4, duration: 0.25, wave: "triangle" },
-      { freq: NOTE.G4, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.F4, duration: 0.25, wave: "triangle" },
-      { freq: NOTE.E4, duration: 0.75, wave: "triangle" },
-      { freq: 0, duration: 0.5 }, // 休止
-      { freq: NOTE.D4, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.E4, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.G4, duration: 0.75, wave: "triangle" },
-      { freq: NOTE.A4, duration: 0.5, wave: "triangle" },
-      { freq: NOTE.E4, duration: 0.75, wave: "triangle" },
-    ],
-    bass: [
-      { freq: NOTE.E3, duration: 1.0, wave: "triangle" },
-      { freq: NOTE.G3, duration: 1.0, wave: "triangle" },
-      { freq: NOTE.A3, duration: 1.0, wave: "triangle" },
-      { freq: NOTE.E3, duration: 1.0, wave: "triangle" },
-      { freq: NOTE.D3, duration: 1.0, wave: "triangle" },
-      { freq: NOTE.C3, duration: 1.0, wave: "triangle" },
-      { freq: NOTE.E3, duration: 1.0, wave: "triangle" },
-    ],
-  },
-
-  // 战斗：紧张快节奏
-  battle: {
-    bpm: 160,
-    melody: [
-      { freq: NOTE.A4, duration: 0.125 }, { freq: NOTE.A4, duration: 0.125 },
-      { freq: NOTE.C5, duration: 0.125 }, { freq: NOTE.A4, duration: 0.125 },
-      { freq: NOTE.E5, duration: 0.25 }, { freq: NOTE.D5, duration: 0.25 },
-      { freq: NOTE.C5, duration: 0.125 }, { freq: NOTE.A4, duration: 0.125 },
-      { freq: NOTE.G4, duration: 0.125 }, { freq: NOTE.A4, duration: 0.125 },
-      { freq: NOTE.C5, duration: 0.25 }, { freq: NOTE.A4, duration: 0.25 },
-      { freq: NOTE.G4, duration: 0.25 }, { freq: NOTE.E4, duration: 0.25 },
-      { freq: NOTE.A4, duration: 0.125 }, { freq: NOTE.A4, duration: 0.125 },
-      { freq: NOTE.C5, duration: 0.125 }, { freq: NOTE.D5, duration: 0.125 },
-      { freq: NOTE.E5, duration: 0.25 }, { freq: NOTE.C5, duration: 0.25 },
-      { freq: NOTE.A4, duration: 0.25 }, { freq: NOTE.G4, duration: 0.125 },
-      { freq: NOTE.A4, duration: 0.375 },
-    ],
-    bass: [
-      { freq: NOTE.A3, duration: 0.25, wave: "sawtooth" }, { freq: NOTE.A3, duration: 0.25, wave: "sawtooth" },
-      { freq: NOTE.C3, duration: 0.25, wave: "sawtooth" }, { freq: NOTE.C3, duration: 0.25, wave: "sawtooth" },
-      { freq: NOTE.D3, duration: 0.25, wave: "sawtooth" }, { freq: NOTE.D3, duration: 0.25, wave: "sawtooth" },
-      { freq: NOTE.E3, duration: 0.5, wave: "sawtooth" },
-      { freq: NOTE.A3, duration: 0.25, wave: "sawtooth" }, { freq: NOTE.A3, duration: 0.25, wave: "sawtooth" },
-      { freq: NOTE.G3, duration: 0.25, wave: "sawtooth" }, { freq: NOTE.E3, duration: 0.25, wave: "sawtooth" },
-      { freq: NOTE.A3, duration: 0.5, wave: "sawtooth" },
-    ],
-  },
-};
-
-// ─── 音效定义 ───
-type SfxName = "attack" | "crit" | "miss" | "skill" | "item" | "victory" | "defeat" | "click" | "intro" | "death";
-
-const SFX_DEFS: Record<SfxName, NoteEvent[]> = {
+// ─── SFX 变体定义（每类 1-3 个变体，播放时随机选取）───
+const SFX_VARIANTS: Record<SfxName, NoteEvent[][]> = {
   attack: [
-    { freq: 300, duration: 0.04, wave: "sawtooth", volume: 0.4 },
-    { freq: 500, duration: 0.03, wave: "square", volume: 0.3 },
-    { freq: 200, duration: 0.05, wave: "sawtooth", volume: 0.2 },
+    // V1: DQ 风格短促下行
+    [
+      { freq: 300, duration: 0.04, wave: "sawtooth", volume: 0.4 },
+      { freq: 500, duration: 0.03, wave: "square", volume: 0.3 },
+      { freq: 200, duration: 0.05, wave: "sawtooth", volume: 0.2 },
+    ],
+    // V2: 利刃斩击
+    [
+      { freq: 800, duration: 0.02, wave: "sawtooth", volume: 0.35 },
+      { freq: 400, duration: 0.04, wave: "sawtooth", volume: 0.3 },
+      { freq: 150, duration: 0.06, wave: "sawtooth", volume: 0.2 },
+    ],
+    // V3: 重锤打击
+    [
+      { freq: 200, duration: 0.03, wave: "square", volume: 0.4 },
+      { freq: 350, duration: 0.03, wave: "sawtooth", volume: 0.35 },
+      { freq: 120, duration: 0.08, wave: "square", volume: 0.25 },
+    ],
   ],
+
   crit: [
-    { freq: 400, duration: 0.03, wave: "square", volume: 0.5 },
-    { freq: 800, duration: 0.04, wave: "square", volume: 0.5 },
-    { freq: 1200, duration: 0.06, wave: "square", volume: 0.4 },
-    { freq: 1600, duration: 0.08, wave: "sawtooth", volume: 0.3 },
+    // V1: 上行闪光爆发
+    [
+      { freq: 400, duration: 0.03, wave: "square", volume: 0.5 },
+      { freq: 800, duration: 0.04, wave: "square", volume: 0.5 },
+      { freq: 1200, duration: 0.06, wave: "square", volume: 0.4 },
+      { freq: 1600, duration: 0.08, wave: "sawtooth", volume: 0.3 },
+    ],
+    // V2: 双重打击
+    [
+      { freq: 600, duration: 0.03, wave: "sawtooth", volume: 0.45 },
+      { freq: 1000, duration: 0.03, wave: "square", volume: 0.5 },
+      { freq: 500, duration: 0.02, wave: "sawtooth", volume: 0.3 },
+      { freq: 1400, duration: 0.08, wave: "square", volume: 0.4 },
+    ],
   ],
+
   miss: [
-    { freq: 600, duration: 0.06, wave: "triangle", volume: 0.2 },
-    { freq: 400, duration: 0.08, wave: "triangle", volume: 0.15 },
-    { freq: 200, duration: 0.1, wave: "triangle", volume: 0.1 },
+    // V1: 柔和下行滑音
+    [
+      { freq: 600, duration: 0.06, wave: "triangle", volume: 0.2 },
+      { freq: 400, duration: 0.08, wave: "triangle", volume: 0.15 },
+      { freq: 200, duration: 0.1, wave: "triangle", volume: 0.1 },
+    ],
+    // V2: 快速闪身
+    [
+      { freq: 500, duration: 0.05, wave: "triangle", volume: 0.18 },
+      { freq: 350, duration: 0.06, wave: "triangle", volume: 0.12 },
+      { freq: 250, duration: 0.08, wave: "triangle", volume: 0.08 },
+    ],
   ],
+
   skill: [
-    { freq: NOTE.C5, duration: 0.06, wave: "square", volume: 0.3 },
-    { freq: NOTE.E5, duration: 0.06, wave: "square", volume: 0.35 },
-    { freq: NOTE.G5, duration: 0.06, wave: "square", volume: 0.4 },
-    { freq: NOTE.C6, duration: 0.1, wave: "square", volume: 0.35 },
+    // V1: 大三和弦 fanfare
+    [
+      { freq: 523.25, duration: 0.06, wave: "square", volume: 0.3 },
+      { freq: 659.25, duration: 0.06, wave: "square", volume: 0.35 },
+      { freq: 783.99, duration: 0.06, wave: "square", volume: 0.4 },
+      { freq: 1046.5, duration: 0.1, wave: "square", volume: 0.35 },
+    ],
+    // V2: 力量和弦冲击
+    [
+      { freq: 440, duration: 0.05, wave: "square", volume: 0.3 },
+      { freq: 587.33, duration: 0.05, wave: "square", volume: 0.35 },
+      { freq: 880, duration: 0.08, wave: "square", volume: 0.4 },
+      { freq: 1046.5, duration: 0.1, wave: "sawtooth", volume: 0.3 },
+    ],
   ],
+
   item: [
-    { freq: NOTE.G4, duration: 0.08, wave: "triangle", volume: 0.3 },
-    { freq: NOTE.B4, duration: 0.08, wave: "triangle", volume: 0.3 },
-    { freq: NOTE.D5, duration: 0.1, wave: "triangle", volume: 0.35 },
+    [
+      { freq: 392, duration: 0.08, wave: "triangle", volume: 0.3 },
+      { freq: 493.88, duration: 0.08, wave: "triangle", volume: 0.3 },
+      { freq: 587.33, duration: 0.1, wave: "triangle", volume: 0.35 },
+    ],
   ],
+
   victory: [
-    { freq: NOTE.C5, duration: 0.15, wave: "square", volume: 0.4 },
-    { freq: NOTE.E5, duration: 0.15, wave: "square", volume: 0.4 },
-    { freq: NOTE.G5, duration: 0.15, wave: "square", volume: 0.4 },
-    { freq: NOTE.C6, duration: 0.3, wave: "square", volume: 0.45 },
-    { freq: 0, duration: 0.1 },
-    { freq: NOTE.G5, duration: 0.1, wave: "square", volume: 0.35 },
-    { freq: NOTE.C6, duration: 0.4, wave: "square", volume: 0.5 },
+    // DQ 胜利 fanfare（上行大三和弦）
+    [
+      { freq: 523.25, duration: 0.15, wave: "square", volume: 0.4 },
+      { freq: 659.25, duration: 0.15, wave: "square", volume: 0.4 },
+      { freq: 783.99, duration: 0.15, wave: "square", volume: 0.4 },
+      { freq: 1046.5, duration: 0.3, wave: "square", volume: 0.45 },
+      { freq: 0, duration: 0.1 },
+      { freq: 783.99, duration: 0.1, wave: "square", volume: 0.35 },
+      { freq: 1046.5, duration: 0.4, wave: "square", volume: 0.5 },
+    ],
   ],
+
   defeat: [
-    { freq: NOTE.E4, duration: 0.2, wave: "triangle", volume: 0.35 },
-    { freq: NOTE.D4, duration: 0.2, wave: "triangle", volume: 0.3 },
-    { freq: NOTE.C4, duration: 0.3, wave: "triangle", volume: 0.25 },
-    { freq: NOTE.B3, duration: 0.5, wave: "triangle", volume: 0.2 },
+    // 下行小调终止
+    [
+      { freq: 329.63, duration: 0.2, wave: "triangle", volume: 0.35 },
+      { freq: 293.66, duration: 0.2, wave: "triangle", volume: 0.3 },
+      { freq: 261.63, duration: 0.3, wave: "triangle", volume: 0.25 },
+      { freq: 246.94, duration: 0.5, wave: "triangle", volume: 0.2 },
+    ],
   ],
+
   click: [
-    { freq: 1000, duration: 0.03, wave: "square", volume: 0.15 },
-    { freq: 1400, duration: 0.02, wave: "square", volume: 0.1 },
+    [
+      { freq: 1000, duration: 0.03, wave: "square", volume: 0.15 },
+      { freq: 1400, duration: 0.02, wave: "square", volume: 0.1 },
+    ],
   ],
+
   intro: [
-    { freq: NOTE.C4, duration: 0.15, wave: "square", volume: 0.3 },
-    { freq: NOTE.E4, duration: 0.15, wave: "square", volume: 0.3 },
-    { freq: NOTE.G4, duration: 0.2, wave: "square", volume: 0.35 },
+    [
+      { freq: 261.63, duration: 0.15, wave: "square", volume: 0.3 },
+      { freq: 329.63, duration: 0.15, wave: "square", volume: 0.3 },
+      { freq: 392, duration: 0.2, wave: "square", volume: 0.35 },
+    ],
   ],
+
   death: [
-    { freq: 300, duration: 0.1, wave: "sawtooth", volume: 0.4 },
-    { freq: 200, duration: 0.15, wave: "sawtooth", volume: 0.3 },
-    { freq: 100, duration: 0.2, wave: "sawtooth", volume: 0.2 },
-    { freq: 50, duration: 0.3, wave: "sawtooth", volume: 0.1 },
+    // 低频衰减
+    [
+      { freq: 300, duration: 0.1, wave: "sawtooth", volume: 0.4 },
+      { freq: 200, duration: 0.15, wave: "sawtooth", volume: 0.3 },
+      { freq: 100, duration: 0.2, wave: "sawtooth", volume: 0.2 },
+      { freq: 50, duration: 0.3, wave: "sawtooth", volume: 0.1 },
+    ],
+  ],
+
+  chime: [
+    // 开机音 — 首次取消静音时播放
+    [
+      { freq: 783.99, duration: 0.08, wave: "triangle", volume: 0.3 },
+      { freq: 1046.5, duration: 0.12, wave: "triangle", volume: 0.35 },
+    ],
   ],
 };
 
 // ─── 音频引擎单例 ───
 class AudioEngine {
   private ctx: AudioContext | null = null;
-  private masterGain: GainNode | null = null;
-  private bgmGain: GainNode | null = null;
   private sfxGain: GainNode | null = null;
 
-  private bgmNodes: OscillatorNode[] = [];
-  private bgmGainNodes: GainNode[] = [];
-  private bgmTimers: ReturnType<typeof setTimeout>[] = [];
+  private bgmAudio: HTMLAudioElement | null = null;
   private currentBgm: string | null = null;
-  private bgmLoopTimer: ReturnType<typeof setTimeout> | null = null;
 
   private _muted = true; // 默认静音
   private _bgmVolume = 0.3;
@@ -206,17 +189,9 @@ class AudioEngine {
   private ensureContext(): AudioContext {
     if (!this.ctx || this.ctx.state === "closed") {
       this.ctx = new AudioContext();
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = this._muted ? 0 : 1;
-      this.masterGain.connect(this.ctx.destination);
-
-      this.bgmGain = this.ctx.createGain();
-      this.bgmGain.gain.value = this._bgmVolume;
-      this.bgmGain.connect(this.masterGain);
-
       this.sfxGain = this.ctx.createGain();
       this.sfxGain.gain.value = this._sfxVolume;
-      this.sfxGain.connect(this.masterGain);
+      this.sfxGain.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") {
       this.ctx.resume();
@@ -224,12 +199,13 @@ class AudioEngine {
     return this.ctx;
   }
 
-  // ─── 音效播放 ───
+  // ─── 音效播放（程序化生成 + 随机变体）───
   playSfx(name: SfxName) {
     if (this._muted) return;
-    const notes = SFX_DEFS[name];
-    if (!notes) return;
+    const variants = SFX_VARIANTS[name];
+    if (!variants || variants.length === 0) return;
 
+    const notes = variants[Math.floor(Math.random() * variants.length)];
     const ctx = this.ensureContext();
     let offset = ctx.currentTime;
 
@@ -252,126 +228,57 @@ class AudioEngine {
     }
   }
 
-  // ─── BGM 播放 ───
+  // ─── BGM 播放（外部音频文件）───
   playBgm(scene: string) {
     if (scene === this.currentBgm) return;
     this.stopBgm();
     this.currentBgm = scene;
     if (this._muted) return;
-    this._startBgmLoop(scene);
+    this._startBgm(scene);
   }
 
-  private _startBgmLoop(scene: string) {
-    const pattern = BGM_PATTERNS[scene];
-    if (!pattern) return;
+  private _startBgm(scene: string) {
+    const file = BGM_FILES[scene];
+    if (!file) return;
 
-    const ctx = this.ensureContext();
-    const loopDuration = this._schedulePattern(ctx, pattern);
-
-    // 循环播放
-    this.bgmLoopTimer = setTimeout(() => {
-      if (this.currentBgm === scene) {
-        this._cleanupBgmNodes();
-        this._startBgmLoop(scene);
-      }
-    }, loopDuration * 1000);
-  }
-
-  private _schedulePattern(ctx: AudioContext, pattern: BgmPattern): number {
-    const now = ctx.currentTime + 0.05; // 小延迟避免爆音
-    let melodyDur = 0;
-    let bassDur = 0;
-
-    // 旋律声部
-    let offset = now;
-    for (const note of pattern.melody) {
-      if (note.freq > 0) {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = note.wave || "square";
-        osc.frequency.value = note.freq;
-        const vol = (note.volume ?? 0.25) * this._bgmVolume;
-        gain.gain.setValueAtTime(vol, offset);
-        gain.gain.setValueAtTime(vol * 0.8, offset + note.duration * 0.8);
-        gain.gain.exponentialRampToValueAtTime(0.001, offset + note.duration);
-        osc.connect(gain);
-        gain.connect(this.bgmGain!);
-        osc.start(offset);
-        osc.stop(offset + note.duration + 0.01);
-        this.bgmNodes.push(osc);
-        this.bgmGainNodes.push(gain);
-      }
-      offset += note.duration;
-      melodyDur += note.duration;
-    }
-
-    // 低音声部
-    if (pattern.bass) {
-      offset = now;
-      for (const note of pattern.bass) {
-        if (note.freq > 0) {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = note.wave || "triangle";
-          osc.frequency.value = note.freq;
-          const vol = (note.volume ?? 0.15) * this._bgmVolume;
-          gain.gain.setValueAtTime(vol, offset);
-          gain.gain.setValueAtTime(vol * 0.7, offset + note.duration * 0.7);
-          gain.gain.exponentialRampToValueAtTime(0.001, offset + note.duration);
-          osc.connect(gain);
-          gain.connect(this.bgmGain!);
-          osc.start(offset);
-          osc.stop(offset + note.duration + 0.01);
-          this.bgmNodes.push(osc);
-          this.bgmGainNodes.push(gain);
-        }
-        offset += note.duration;
-        bassDur += note.duration;
-      }
-    }
-
-    return Math.max(melodyDur, bassDur);
+    const audio = new Audio(file);
+    audio.loop = true;
+    audio.volume = this._bgmVolume;
+    audio.play().catch(() => {
+      // 浏览器可能需要用户交互后才允许播放，静默处理
+    });
+    this.bgmAudio = audio;
   }
 
   stopBgm() {
-    this._cleanupBgmNodes();
-    if (this.bgmLoopTimer) {
-      clearTimeout(this.bgmLoopTimer);
-      this.bgmLoopTimer = null;
+    if (this.bgmAudio) {
+      this.bgmAudio.pause();
+      this.bgmAudio.src = "";
+      this.bgmAudio = null;
     }
     this.currentBgm = null;
   }
 
-  private _cleanupBgmNodes() {
-    for (const osc of this.bgmNodes) {
-      try { osc.stop(); } catch { /* already stopped */ }
-    }
-    this.bgmNodes = [];
-    this.bgmGainNodes = [];
-    for (const t of this.bgmTimers) clearTimeout(t);
-    this.bgmTimers = [];
-  }
-
-  // ─── 音量控制 ───
+  // ─── 静音控制 ───
   get muted() { return this._muted; }
 
   toggleMute(): boolean {
     this._muted = !this._muted;
     localStorage.setItem("audio_muted", this._muted ? "true" : "false");
 
-    if (this.masterGain) {
-      this.masterGain.gain.value = this._muted ? 0 : 1;
-    }
-
-    // 静音时停止 BGM 节点，取消静音时恢复
     if (this._muted) {
-      this._cleanupBgmNodes();
-      if (this.bgmLoopTimer) {
-        clearTimeout(this.bgmLoopTimer);
-        this.bgmLoopTimer = null;
+      // 静音：暂停 BGM
+      if (this.bgmAudio) {
+        this.bgmAudio.pause();
+        this.bgmAudio.src = "";
+        this.bgmAudio = null;
       }
-    } else if (this.currentBgm) {
-      this._startBgmLoop(this.currentBgm);
+    } else {
+      // 取消静音：播放开机音 + 恢复 BGM
+      this.playSfx("chime");
+      if (this.currentBgm) {
+        this._startBgm(this.currentBgm);
+      }
     }
 
     return this._muted;
@@ -380,7 +287,7 @@ class AudioEngine {
   setBgmVolume(v: number) {
     this._bgmVolume = Math.max(0, Math.min(1, v));
     localStorage.setItem("audio_bgm_vol", String(this._bgmVolume));
-    if (this.bgmGain) this.bgmGain.gain.value = this._bgmVolume;
+    if (this.bgmAudio) this.bgmAudio.volume = this._bgmVolume;
   }
 
   setSfxVolume(v: number) {

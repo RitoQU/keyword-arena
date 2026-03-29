@@ -75,7 +75,9 @@ export async function GET() {
       .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || b.total - a.total)
       .slice(0, 50);
 
-    return NextResponse.json({ rankings });
+    const resp = NextResponse.json({ rankings });
+    resp.headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=60");
+    return resp;
   } catch (err) {
     console.error("Rankings error:", err);
     return NextResponse.json({ error: "服务器错误" }, { status: 500 });
