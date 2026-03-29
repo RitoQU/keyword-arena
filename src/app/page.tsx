@@ -148,67 +148,114 @@ export default function Home() {
 
       {/* 游戏说明弹窗 (OPT-01) */}
       {showRules && (
-        <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-50 p-4">
-          <div className="pixel-card max-w-lg w-full max-h-[80vh] overflow-y-auto">
-            <h2 className="font-pixel text-pixel-yellow text-sm mb-4 text-center">
+        <div
+          className="fixed inset-0 bg-black/85 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowRules(false)}
+        >
+          <div
+            className="pixel-card max-w-lg w-full max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="font-pixel text-pixel-yellow text-sm mb-4 text-center shrink-0">
               📖 HOW TO PLAY
             </h2>
 
-            <div className="space-y-4 font-pixel-zh text-gray-300 text-sm leading-relaxed">
-              <div>
-                <h3 className="text-pixel-green mb-1">🎲 创建角色</h3>
-                <p>输入 3 个关键词，AI 会为你锻造一个独一无二的游戏角色，拥有 D&D 风格的六维属性、武器、防具、技能和特殊物品。关键词决定角色的力量等级——越稀有、越强大的词汇，角色实力越强。</p>
-              </div>
+            <div className="overflow-y-auto flex-1 min-h-0">
+              <div className="space-y-4 font-pixel-zh text-gray-300 text-sm leading-relaxed">
+                <div>
+                  <h3 className="text-pixel-green mb-1">🎲 创建角色</h3>
+                  <p>输入 3 个关键词，AI 会为你锻造一个独一无二的游戏角色，拥有 D&D 风格的六维属性、武器、防具、技能和特殊物品。关键词决定角色的力量等级——越稀有、越强大的词汇，角色实力越强。</p>
+                </div>
 
-              <div>
-                <h3 className="text-pixel-green mb-1">⚔️ 回合制对战</h3>
-                <p>系统自动匹配对手，两个角色进行最多 10 回合的自动战斗。角色会使用普通攻击和技能轮番进攻，特殊物品有概率触发。</p>
-              </div>
+                <div>
+                  <h3 className="text-pixel-green mb-1">⚔️ 回合制对战</h3>
+                  <p>系统自动匹配对手，两个角色进行最多 10 回合的自动战斗。角色会使用普通攻击和技能轮番进攻，特殊物品有概率触发。</p>
+                </div>
 
-              <div>
-                <h3 className="text-pixel-green mb-1">🏆 胜负判定</h3>
-                <p>先将对方 HP 降为 0 的一方获胜。若 10 回合后双方都存活，则 HP 百分比高的一方胜出。</p>
-              </div>
+                <div>
+                  <h3 className="text-pixel-green mb-1">🏆 胜负判定</h3>
+                  <p>先将对方 HP 降为 0 的一方获胜。若 10 回合后双方都存活，则 HP 百分比高的一方胜出。</p>
+                </div>
 
-              <div>
-                <h3 className="text-pixel-green mb-1">🔥 连胜与首胜</h3>
-                <p>连续获胜会积累连胜徽章（🔥×N），展示你的实力。每天首次获胜会获得「首胜」标记，鼓励每日征战。</p>
-              </div>
+                <div>
+                  <h3 className="text-pixel-green mb-1">🔥 连胜与首胜</h3>
+                  <p>连续获胜会积累连胜徽章（🔥×N），展示你的实力。每天首次获胜会获得「首胜」标记，鼓励每日征战。</p>
+                </div>
 
-              <div>
-                <h3 className="text-pixel-green mb-1">👹 BOSS 挑战</h3>
-                <p>5 位强大的 BOSS 等待你的挑战，从 T1 守卫石像到 T5 虚空之眼，难度依次递增。击败 BOSS 将获得特殊荣耀！</p>
-              </div>
+                <div>
+                  <h3 className="text-pixel-green mb-1">👹 BOSS 挑战</h3>
+                  <p>5 位强大的 BOSS 等待你的挑战，从 T1 守卫石像到 T5 虚空之眼，难度依次递增。击败 BOSS 将获得特殊荣耀！</p>
+                </div>
 
-              <div>
-                <h3 className="text-pixel-green mb-1">⚡ 战斗操控</h3>
-                <p>战斗中可以 2 倍速快进，战斗结束后可以用 emoji 一键分享战报给好友。</p>
-              </div>
+                <div>
+                  <h3 className="text-pixel-green mb-1">⚡ 战斗操控</h3>
+                  <p>战斗中可以 2 倍速快进，战斗结束后可以用 emoji 一键分享战报给好友。</p>
+                </div>
 
-              <div>
-                <h3 className="text-pixel-green mb-1">💡 小贴士</h3>
-                <ul className="list-disc list-inside space-y-1 text-gray-400">
-                  <li>关键词越有想象力，角色越有趣</li>
-                  <li>试试「龙」「混沌」「泰坦」等史诗关键词</li>
-                  <li>每天可以生成 3 个角色、对战 50 场</li>
-                  <li>不满意当前角色？删除后重新生成</li>
-                </ul>
-              </div>
+                <div>
+                  <h3 className="text-pixel-green mb-1">💡 小贴士</h3>
+                  <ul className="list-disc list-inside space-y-1 text-gray-400">
+                    <li>关键词越有想象力，角色越有趣</li>
+                    <li>试试「龙」「混沌」「泰坦」等史诗关键词</li>
+                    <li>每天可以生成 3 个角色、对战 50 场</li>
+                    <li>不满意当前角色？删除后重新生成</li>
+                  </ul>
+                </div>
 
-              <div>
-                <h3 className="text-pixel-green mb-1">🔑 账号说明</h3>
-                <p>你的「名字」+「识别码」就是你的游戏账号。下次登录时输入一样的名字和识别码，就能找回你的角色和战绩。请记住它们，并且不要告诉别人——识别码相当于你的密码。</p>
-              </div>
+                <div>
+                  <h3 className="text-pixel-green mb-1">🔑 账号说明</h3>
+                  <p>你的「名字」+「识别码」就是你的游戏账号。下次登录时输入一样的名字和识别码，就能找回你的角色和战绩。请记住它们，并且不要告诉别人——识别码相当于你的密码。</p>
+                </div>
 
-              <div className="border-t border-gray-700 pt-3 mt-3">
-                <h3 className="text-pixel-yellow mb-1">✨ Special Thanks</h3>
-                <p className="text-gray-400">Brickea — for the inspiration and support.</p>
+                <div className="border-t border-gray-700 pt-3 mt-3">
+                  <h3 className="text-pixel-yellow mb-1">✨ Special Thanks</h3>
+                  <p className="text-gray-400">Brickea — for the inspiration and support.</p>
+                </div>
+
+                {/* 版本更新记录 */}
+                <div className="border-t border-gray-700 pt-3 mt-3">
+                  <h3 className="text-pixel-yellow mb-2">📋 版本更新</h3>
+
+                  <div className="space-y-3 text-gray-400 text-xs">
+                    <div>
+                      <p className="text-gray-300 font-bold mb-1">v0.3 — 2026.03.29</p>
+                      <ul className="list-none space-y-0.5">
+                        <li>🔥 连胜系统 & 每日首胜徽章</li>
+                        <li>👹 5 级 BOSS 挑战</li>
+                        <li>📋 一键分享 emoji 战报</li>
+                        <li>⚡ 2× 战斗加速</li>
+                        <li>🎯 技能/物品/暴击/闪避动作展示</li>
+                        <li>🎵 像素风 BGM & 音效</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-300 font-bold mb-1">v0.2 — 2026.03.26</p>
+                      <ul className="list-none space-y-0.5">
+                        <li>🎨 像素精灵系统（27 原型 + 装饰叠加）</li>
+                        <li>⚔️ 五级力量分层（T1 普通 → T5 传说）</li>
+                        <li>💫 战斗动画 & 入场倒计时</li>
+                        <li>📊 排行榜 & 战斗历史</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-300 font-bold mb-1">v0.1 — 2026.03.22</p>
+                      <ul className="list-none space-y-0.5">
+                        <li>🎲 AI 角色生成（3 关键词 → D&D 六维）</li>
+                        <li>⚔️ 回合制自动对战引擎</li>
+                        <li>👤 账号系统（名字 + 识别码）</li>
+                        <li>🏠 像素风首页 & 粒子动画</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <button
               onClick={() => setShowRules(false)}
-              className="pixel-btn-primary w-full mt-6"
+              className="pixel-btn-primary w-full mt-4 shrink-0"
             >
               知道了！
             </button>
