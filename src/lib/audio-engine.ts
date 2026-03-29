@@ -184,10 +184,24 @@ class AudioEngine {
       this._muted = true;
       this._bgmVolume = parseFloat(localStorage.getItem("audio_bgm_vol") || "0.3");
       this._sfxVolume = parseFloat(localStorage.getItem("audio_sfx_vol") || "0.5");
+
+      // 手机切后台再回来时，AudioContext 会被系统挂起，需要自动恢复
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && !this._muted) {
+          // 恢复 AudioContext
+          if (this.ctx && this.ctx.state === "suspended") {
+            this.ctx.resume();
+          }
+          // 恢复 BGM（HTMLAudioElement 可能被系统 pause）
+          if (this.bgmAudio && this.bgmAudio.paused && this.currentBgm) {
+            this.bgmAudio.play().catch(() => {});
+          }
+        }
+      });
     }
   }
 
-  private ensureContext(): AudioContext {
+  private async ensureContext(): Promise<AudioContext> {
     if (!this.ctx || this.ctx.state === "closed") {
       this.ctx = new AudioContext();
       this.sfxGain = this.ctx.createGain();
@@ -195,19 +209,19 @@ class AudioEngine {
       this.sfxGain.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") {
-      this.ctx.resume();
+      await this.ctx.resume();
     }
     return this.ctx;
   }
 
   // ─── 音效播放（程序化生成 + 随机变体）───
-  playSfx(name: SfxName) {
+  async playSfx(name: SfxName) {
     if (this._muted) return;
     const variants = SFX_VARIANTS[name];
     if (!variants || variants.length === 0) return;
 
     const notes = variants[Math.floor(Math.random() * variants.length)];
-    const ctx = this.ensureContext();
+    const ctx = await this.ensureContext();
     let offset = ctx.currentTime;
 
     for (const note of notes) {
@@ -246,7 +260,16 @@ class AudioEngine {
     audio.loop = true;
     audio.volume = this._bgmVolume;
     audio.play().catch(() => {
-      // 浏览器可能需要用户交互后才允许播放，静默处理
+      // 浏览器可能需要用户交互后才允许播放，监听一次交互后重试
+      const retry = () => {
+        if (this.bgmAudio === audio && !this._muted) {
+          audio.play().catch(() => {});
+        }
+        document.removeEventListener("click", retry);
+        document.removeEventListener("touchstart", retry);
+      };
+      document.addEventListener("click", retry, { once: true });
+      document.addEventListener("touchstart", retry, { once: true });
     });
     this.bgmAudio = audio;
   }

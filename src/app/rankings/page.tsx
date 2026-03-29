@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAudio } from "@/hooks/useAudio";
 import type { Character } from "@/lib/types";
 
 interface RankingEntry {
@@ -22,11 +23,14 @@ interface CharacterDetail extends Character {
 
 export default function RankingsPage() {
   const router = useRouter();
+  const { playBgm } = useAudio();
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [selectedChar, setSelectedChar] = useState<CharacterDetail | null>(null);
   const [charLoading, setCharLoading] = useState(false);
+
+  useEffect(() => { playBgm("forge"); }, [playBgm]);
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");

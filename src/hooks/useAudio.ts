@@ -47,5 +47,9 @@ export function useAudio() {
     getAudioEngine().stopBgm();
   }, []);
 
-  return { muted, toggleMute, playSfx, playBgm, stopBgm };
+  const setBgmVolume = useCallback((v: number) => {
+    getAudioEngine().setBgmVolume(v);
+  }, []);
+
+  return { muted, toggleMute, playSfx, playBgm, stopBgm, setBgmVolume };
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAudio } from "@/hooks/useAudio";
 
 interface BattleRecord {
   id: string;
@@ -17,8 +18,11 @@ interface BattleRecord {
 
 export default function HistoryPage() {
   const router = useRouter();
+  const { playBgm } = useAudio();
   const [history, setHistory] = useState<BattleRecord[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => { playBgm("forge"); }, [playBgm]);
 
   useEffect(() => {
     const userData = sessionStorage.getItem("user");

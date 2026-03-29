@@ -155,28 +155,26 @@ export default function GamePage() {
 
       <div className="z-10 w-full max-w-lg mx-auto">
         {/* 顶栏 */}
-        <div className="flex items-center mb-6 gap-3">
+        <div className="mb-6 space-y-1">
+          <span className="font-pixel text-pixel-green text-xs block truncate max-w-[200px]">
+            {user.name}
+          </span>
+          {streakData?.title && (
+            <span className={`font-pixel text-xs block ${
+              streakData.title === "虚空征服者" ? "title-shimmer" :
+              streakData.title === "驯兽者" ? "text-pixel-orange" :
+              streakData.title === "祛魔师" ? "text-pixel-blue" :
+              streakData.title === "破影人" ? "text-pixel-purple" : "text-gray-300"
+            }`}>
+              「{streakData.title}」
+            </span>
+          )}
           <button
             onClick={handleLogout}
-            className="font-pixel-zh text-gray-500 text-sm hover:text-gray-300"
+            className="font-pixel-zh text-gray-500 text-xs hover:text-gray-300"
           >
-            退出
+            ← 退出
           </button>
-          <div className="inline-flex items-center">
-            <span className="font-pixel text-pixel-green text-xs">
-              {user.name}
-            </span>
-            {streakData?.title && (
-              <span className={`font-pixel text-xs ml-2 ${
-                streakData.title === "虚空征服者" ? "title-shimmer" :
-                streakData.title === "驯兽者" ? "text-pixel-orange" :
-                streakData.title === "祛魔师" ? "text-pixel-blue" :
-                streakData.title === "破影人" ? "text-pixel-purple" : "text-gray-300"
-              }`}>
-                「{streakData.title}」
-              </span>
-            )}
-          </div>
         </div>
 
         {/* 无角色：生成角色 */}

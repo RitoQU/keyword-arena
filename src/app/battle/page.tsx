@@ -131,7 +131,7 @@ export default function BattlePage() {
   const [remainingBattles, setRemainingBattles] = useState<number | null>(null);
   const [introStep, setIntroStep] = useState(0);
   const logRef = useRef<HTMLDivElement>(null);
-  const { playBgm, playSfx, stopBgm } = useAudio();
+  const { playBgm, playSfx, stopBgm, setBgmVolume } = useAudio();
 
   // 连胜 + 首胜
   const [streakInfo, setStreakInfo] = useState<{
@@ -275,13 +275,15 @@ export default function BattlePage() {
   // BGM + 场景音效：根据 battlePhase 切换
   useEffect(() => {
     if (battlePhase === "intro") {
+      setBgmVolume(0.3); // 恢复正常音量
       playSfx("intro");
       playBgm("battle");
     } else if (battlePhase === "result" && battleResult) {
-      stopBgm();
+      // 结算：BGM 降音量，不停止，叠加胜负音效
+      setBgmVolume(0.08);
       playSfx(battleResult.winner === "player" ? "victory" : "defeat");
     }
-  }, [battlePhase, battleResult, playBgm, stopBgm, playSfx]);
+  }, [battlePhase, battleResult, playBgm, setBgmVolume, playSfx]);
 
   // 入场倒计时
   useEffect(() => {
