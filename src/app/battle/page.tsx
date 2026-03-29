@@ -165,25 +165,49 @@ export default function BattlePage() {
   const generateShareText = useCallback(() => {
     if (!battleResult) return "";
     const { player, opponent, rounds, winner } = battleResult;
-    const resultEmoji = winner === "player" ? "🏆" : winner === "opponent" ? "💀" : "🤝";
+
+    // 胜负主标题
+    const isWin = winner === "player";
+    const isDraw = winner === "draw";
+    const headline = isWin
+      ? `🏆 我的「${player.name}」${rounds.length}回合击败了「${opponent.name}」！`
+      : isDraw
+      ? `🤝「${player.name}」vs「${opponent.name}」${rounds.length}回合打成平手！`
+      : `💀「${player.name}」苦战${rounds.length}回合惜败「${opponent.name}」…`;
+
+    // 精彩战斗摘要
+    const crits = rounds.filter(r => r.isCrit).length;
+    const skills = rounds.filter(r => r.actionType === "skill").length;
+    const misses = rounds.filter(r => r.isMiss).length;
+    const highlights: string[] = [];
+    if (crits > 0) highlights.push(`💥暴击×${crits}`);
+    if (skills > 0) highlights.push(`✨技能×${skills}`);
+    if (misses > 0) highlights.push(`💨闪避×${misses}`);
+
+    // HP 战况
+    const lastRound = rounds[rounds.length - 1];
+    const pHpPct = Math.round((lastRound.playerHp / lastRound.playerMaxHp) * 100);
+    const oHpPct = Math.round((lastRound.opponentHp / lastRound.opponentMaxHp) * 100);
+    const hpLine = `❤️ ${pHpPct}% vs ${oHpPct}%`;
+
+    // 每回合 emoji 简图
+    const battleLine = rounds.map(r => {
+      if (r.isMiss) return "💨";
+      if (r.isCrit) return "💥";
+      if (r.actionType === "skill") return "✨";
+      if (r.actionType === "item_trigger") return "🎯";
+      return "⚔️";
+    }).join("");
+
     const lines: string[] = [];
-    lines.push(`${resultEmoji} ${player.name} vs ${opponent.name}`);
-    // 每回合一行 emoji
-    for (const r of rounds) {
-      const isP = r.attacker === "player";
-      const icon = r.isMiss ? "💨" : r.isCrit ? "💥" : r.actionType === "skill" ? "✨" : r.actionType === "item_trigger" ? "🎯" : "⚔️";
-      const bar = (hp: number, max: number) => {
-        const filled = Math.round((hp / max) * 5);
-        return "🟩".repeat(filled) + "⬛".repeat(5 - filled);
-      };
-      if (isP) {
-        lines.push(`${icon} → ${bar(r.opponentHp, r.opponentMaxHp)}`);
-      } else {
-        lines.push(`${bar(r.playerHp, r.playerMaxHp)} ← ${icon}`);
-      }
-    }
+    lines.push(headline);
     lines.push("");
-    lines.push("⚔️ Keyword Arena");
+    lines.push(battleLine);
+    if (highlights.length > 0) lines.push(highlights.join(" "));
+    lines.push(hpLine);
+    lines.push("");
+    lines.push("🎮 来「关键词竞技场」输入3个关键词，AI帮你生成角色对战！");
+    lines.push("👉 https://keyword-arena.vercel.app");
     return lines.join("\n");
   }, [battleResult]);
 

@@ -11,8 +11,9 @@ UPDATE characters SET
   visual = '{"archetype":"ninja","aura":"dark","held":"dual","wings":"tiny"}'::jsonb
 WHERE name = '暗影刺客' AND boss_tier = 2;
 
--- T3 炼金贤者：visual 升级（halo→crown 贤者加冕）
+-- T3 炼金贤者：关键词升级 + visual 升级（halo→crown 贤者加冕）
 UPDATE characters SET 
+  keywords = '禁忌炼金师 万毒贤者石 水银蚀魂体',
   visual = '{"archetype":"mage","hat":"crown","aura":"holy","held":"staff"}'::jsonb
 WHERE name = '炼金贤者' AND boss_tier = 3;
 
